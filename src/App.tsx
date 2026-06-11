@@ -3,6 +3,7 @@ import MainLayout from './layouts/MainLayout';
 import AuthLayout from './layouts/AuthLayout';
 import Auth from './pages/Auth/Auth';
 import VerifyEmail from './pages/Auth/VerifyEmail';
+import GoogleCallback from './pages/Auth/GoogleCallback';
 // import Home from './pages/Home';
 
 const App = () => {
@@ -16,6 +17,9 @@ const App = () => {
         <Route path="signin" element={<Auth authState='signin' />} />
         <Route path="signup" element={<Auth authState='signup' />} />
         <Route path="verify-email" element={<VerifyEmail />} />
+        {/* Google OAuth redirect lands here (path depends on backend's frontend redirect). */}
+        <Route path="auth/callback" element={<GoogleCallback />} />
+        <Route path="auth/google/callback" element={<GoogleCallback />} />
       </Route>
     </Routes>
   );

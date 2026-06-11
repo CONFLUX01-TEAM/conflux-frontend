@@ -4,6 +4,7 @@ import InputField from '../../components/InputField';
 import Button from '../../components/Button';
 import type { AuthProps } from '../../types';
 import { validateAuthForm } from '../../utils/validation';
+import { startGoogleLogin } from '../../utils/auth';
 
 const Auth: React.FC<AuthProps> = ({ authState }) => {
   const navigate = useNavigate();
@@ -11,6 +12,12 @@ const Auth: React.FC<AuthProps> = ({ authState }) => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleLogin = () => {
+    setGoogleLoading(true);
+    startGoogleLogin();
+  };
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -158,9 +165,15 @@ const Auth: React.FC<AuthProps> = ({ authState }) => {
           <div>
             <Button
               type="button"
-              label="Continue with google"
-              icon={<img src="/google-icon.svg" alt="Google" className="size-[1.25rem]" />}
-              className="mb-[1.25rem] text-[#0D2D54] border-[0.06rem] rounded-[0.5rem] border-[#E6E6E6] bg-white py-[0.91em] font-inter text-base font-medium shrink-0"
+              onClick={handleGoogleLogin}
+              disabled={googleLoading}
+              label={googleLoading ? 'Redirecting to Google…' : 'Continue with google'}
+              icon={
+                !googleLoading && (
+                  <img src="/google-icon.svg" alt="Google" className="size-[1.25rem]" />
+                )
+              }
+              className="mb-[1.25rem] text-[#0D2D54] border-[0.06rem] rounded-[0.5rem] border-[#E6E6E6] bg-white py-[0.91em] font-inter text-base font-medium shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
             />
           </div>
           
