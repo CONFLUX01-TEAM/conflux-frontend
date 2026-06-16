@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { InputFieldProps } from '../types';
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(

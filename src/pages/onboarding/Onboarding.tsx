@@ -51,7 +51,7 @@ const OnboardingPage = () => {
                     value: linkedin,
                     type: 'text',
                     onChange: (e: any) => { setLinkedin(e.target.value); setShowError(false); },
-                    isValid: linkedin.trim().length > 0 && linkedin.includes("linkedin.com"),
+                    isValid: /^(https?:\/\/)?(www\.)?linkedin\.com\/(company|school|showcase)\/[a-zA-Z0-9-]+(\/.*)?$/i.test(linkedin.trim()),
                     errorMessage: 'Please provide a valid LinkedIn URL.'
                 };
             case 4:

@@ -1,6 +1,16 @@
 import React from 'react';
 
-const Spinner = ({ className = 'text-[#0D2D54]', wrapperClassName = 'bg-white' }: { className?: string, wrapperClassName?: string }) => {
+interface SpinnerProps {
+  /** Tailwind size and color classes. */
+  className?: string;
+  /** Wrapper div classes (optional). */
+  wrapperClassName?: string;
+}
+
+const Spinner: React.FC<SpinnerProps> = ({ 
+  className = 'text-[#0D2D54]', 
+  wrapperClassName = 'bg-white' 
+}) => {
   return (
     <div className={`flex items-center justify-center rounded-full ${wrapperClassName} p-1 w-fit h-fit`}>
       <svg 
