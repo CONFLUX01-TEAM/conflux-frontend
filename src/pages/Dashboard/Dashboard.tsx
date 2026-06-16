@@ -1,6 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
-import { getUser, logout } from '../../utils/auth';
+import { clearToken, getToken } from '../../utils/auth';
+
+const getUser = () => {
+  const token = getToken();
+  // Simple mock since this is a temporary dashboard
+  return token ? { name: 'User', email: 'user@example.com', avatar: '' } : null;
+};
+const logout = clearToken;
 
 /**
  * Minimal authenticated landing page. Its main job today is to give the OAuth

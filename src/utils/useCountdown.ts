@@ -5,7 +5,7 @@ export const useCountdown = (initialSeconds: number) => {
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
 
     if (isActive && secondsLeft > 0) {
       interval = setInterval(() => {

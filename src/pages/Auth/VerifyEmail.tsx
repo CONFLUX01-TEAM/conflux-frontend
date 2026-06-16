@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
 import { useCountdown } from '../../utils/useCountdown';
 import { validateOTP } from '../../utils/validation';
@@ -8,6 +9,7 @@ const VerifyEmail = () => {
   const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const { secondsLeft, isActive, resetCountdown } = useCountdown(60);
+  const navigate = useNavigate();
 
   const handleChange = (index: number, value: string) => {
     // Only allow numbers
@@ -46,6 +48,7 @@ const VerifyEmail = () => {
     
     console.log("OTP submitted:", otpValue);
     // Add logic to verify OTP here
+    navigate('/onboarding');
   }
 
   return (

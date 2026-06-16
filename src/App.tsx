@@ -4,7 +4,8 @@ import AuthLayout from './layouts/AuthLayout';
 import Auth from './pages/Auth/Auth';
 import VerifyEmail from './pages/Auth/VerifyEmail';
 import GoogleCallback from './pages/Auth/GoogleCallback';
-// import Home from './pages/Home';
+import OnboardingPage from './pages/onboarding/Onboarding';
+import OnboardingLayout from './layouts/OnboardingLayout';
 
 const App = () => {
   return (
@@ -20,6 +21,10 @@ const App = () => {
         {/* Google OAuth redirect lands here (path depends on backend's frontend redirect). */}
         <Route path="auth/callback" element={<GoogleCallback />} />
         <Route path="auth/google/callback" element={<GoogleCallback />} />
+      </Route>
+
+      <Route element={<OnboardingLayout />}>
+        <Route path="onboarding" element={<OnboardingPage />} />
       </Route>
     </Routes>
   );
