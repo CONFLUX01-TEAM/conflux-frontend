@@ -33,7 +33,7 @@ const OnboardingLayout = () => {
   const [step, setStep] = useState(1);
   const testimonial = testimonials[step - 1] || testimonials[0];
   return (
-    <div className="w-full min-h-screen bg-[#0D2D54] flex gap-[3.19rem] p-[1.5rem] font-sans">
+    <div className="w-full min-h-screen bg-[#0D2D54] flex gap-[3.19rem] lg:p-6 font-sans">
       {/* Left sidebar */}
       <div className="hidden lg:block text-white ml-[2.94rem] w-[40%]">
         <div>
@@ -49,7 +49,7 @@ const OnboardingLayout = () => {
         
         {/* Abstract polygons */}
         <div className="pointer-events-none mx-auto">
-          <img src="/onboard-company-logo.svg" alt="" className="w-[20.81rem] h-[22.19rem] my-[3rem] object-contain mx-auto" />
+          <img src="/onboard-company-logo.svg" alt="" className="w-[20.81rem] h-[22.19rem] my-12 object-contain mx-auto" />
         </div>
 
         <div>
@@ -63,7 +63,7 @@ const OnboardingLayout = () => {
       </div>
       
       {/* Right Content */}
-      <div className="flex-1 bg-white lg:rounded-[0.94rem] shadow-xl">
+      <div className="flex-1 w-full bg-white lg:rounded-[0.94rem] shadow-xl">
         <Outlet context={{ step, setStep }} />
       </div>
     </div>

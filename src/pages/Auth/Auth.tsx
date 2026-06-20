@@ -70,7 +70,7 @@ const Auth: React.FC<AuthProps> = ({ authState }) => {
         </div>
 
         {/* Form */}
-        <div className='flex flex-col w-full max-w-[42rem] mx-auto xl:mx-0 xl:max-w-none 2xl:max-w-[42rem] h-full xl:min-h-[58.25rem] rounded-[0.94rem] py-6 sm:py-8 px-4 sm:px-8 lg:px-12 xl:px-10 2xl:px-[107px] border-[0.06rem] border-[#E6E6E6]'>
+        <div className='flex flex-col w-full max-w-[42rem] mx-auto xl:mx-0 xl:max-w-none 2xl:max-w-[42rem] h-full xl:min-h-[58.25rem] rounded-[0.94rem] py-6 sm:py-8 px-4 sm:px-8 lg:px-12 xl:px-10 2xl:px-[97px] border-[0.06rem] border-[#E6E6E6]'>
           <div>
             <h1 className='font-sans text-2xl sm:text-[2.5rem] md:text-[3rem] text-[#222222] font-medium leading-tight'>Welcome to Conflux</h1>
             <p className='font-inter text-base sm:text-lg md:text-[1.25rem] text-[#9D9D9D] mt-2'>Start your experience with signing in or signing up</p>
