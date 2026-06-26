@@ -6,8 +6,36 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "audit": "pnpm audit --audit-level=high",
+    "check": "pnpm typecheck && pnpm lint && pnpm test",
+    "validate": "pnpm check && pnpm build",
+    "prepush": "pnpm validate",
+    "branch-guard:commit": "node .github/branch-guard.mjs commit",
+    "branch-guard:push": "node .github/branch-guard.mjs push",
+    "prepare": "husky"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,html,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
@@ -17,17 +45,29 @@
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.1.0",
+    "@commitlint/config-conventional": "^21.1.0",
     "@eslint/js": "^9.39.4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.9",
     "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.8.4",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
-    "vite": "^8.0.9"
+    "vite": "^8.0.9",
+    "vitest": "^4.1.9"
   }
 }

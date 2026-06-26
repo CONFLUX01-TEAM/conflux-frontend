@@ -5,11 +5,15 @@
 > **Audience:** Frontend engineers, tech leads, architects
 > **Status:** Approved for implementation
 
+**Want to contribute?** This README describes the long-term architecture. For setup, folder layout, scripts, commit conventions, and what to build next, use **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** — that is the guide for day-to-day work on this codebase.
+
 ---
 
 ## Purpose
 
 This document defines the scalable frontend architecture for the AI Recruitment Platform. It covers layer responsibilities, technology choices, file organisation, state management strategy, performance patterns, and the decision rationale behind each — with Phase 2 feature additions accounted for from the start.
+
+**Contributors:** start with [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) before your first PR. It explains the current repo structure, quality gates, and the backlog items the team is expected to pick up.
 
 ---
 
@@ -25,18 +29,18 @@ This document defines the scalable frontend architecture for the AI Recruitment 
 
 ## Technology Stack
 
-| Technology | Category | Rationale |
-|---|---|---|
-| React 18 + TypeScript | UI framework + type safety | Concurrent features, strict typing throughout |
-| Vite | Build tool | Sub-second HMR, native ESM, optimised production bundles |
-| React Router v6 | Client-side routing | Nested routes, lazy loading, route-based code splitting |
-| TanStack Query v5 | Server state | Caching, background refetch, optimistic updates, stale-while-revalidate |
-| Zustand | Client state | Lightweight, minimal boilerplate, devtools, immer middleware |
-| Axios | HTTP client | Interceptors for auth, token refresh, global error handling |
-| TanStack Virtual | Virtual scrolling | Render 1,000+ candidate rows at 60fps |
-| Tailwind CSS | Styling | Utility-first, consistent design tokens, dark mode ready |
-| Vitest + Testing Library | Testing | Unit and integration tests, co-located with features |
-| Playwright | E2E testing | Critical user flows: assessment submission, scoring, shortlisting |
+| Technology               | Category                   | Rationale                                                               |
+| ------------------------ | -------------------------- | ----------------------------------------------------------------------- |
+| React 18 + TypeScript    | UI framework + type safety | Concurrent features, strict typing throughout                           |
+| Vite                     | Build tool                 | Sub-second HMR, native ESM, optimised production bundles                |
+| React Router v6          | Client-side routing        | Nested routes, lazy loading, route-based code splitting                 |
+| TanStack Query v5        | Server state               | Caching, background refetch, optimistic updates, stale-while-revalidate |
+| Zustand                  | Client state               | Lightweight, minimal boilerplate, devtools, immer middleware            |
+| Axios                    | HTTP client                | Interceptors for auth, token refresh, global error handling             |
+| TanStack Virtual         | Virtual scrolling          | Render 1,000+ candidate rows at 60fps                                   |
+| Tailwind CSS             | Styling                    | Utility-first, consistent design tokens, dark mode ready                |
+| Vitest + Testing Library | Testing                    | Unit and integration tests, co-located with features                    |
+| Playwright               | E2E testing                | Critical user flows: assessment submission, scoring, shortlisting       |
 
 ---
 
@@ -44,18 +48,18 @@ This document defines the scalable frontend architecture for the AI Recruitment 
 
 Dependencies flow **downward only** — upper layers import from lower ones; lower layers never import from upper ones.
 
-| Layer | Technology / Pattern | Key Responsibilities |
-|---|---|---|
-| 1. Entry point | `app.tsx` + Vite | Bootstrap, providers, global error boundary, Suspense root |
-| 2. Router | React Router v6 | Route definitions, lazy loading, role-based guards, redirect logic |
-| 3. Pages | One file per route | Compose layout + feature components; minimal logic |
-| 4. Feature modules | `features/<domain>/` | All domain logic: components, hooks, local state, types |
-| 5. Shared UI | `shared/ui/` | Reusable primitives used across 2+ features |
-| 6. State — server | TanStack Query | API data, caching, optimistic updates, background sync |
-| 6. State — client | Zustand | Auth session, exam state, notification queue, UI prefs |
-| 7. Services | `services/` | All API calls; one file per domain; apiClient as shared base |
-| 8. Cross-cutting | `lib/` + `hooks/` | Formatters, validators, feature flags, analytics, logger |
-| 9. Performance | Build + runtime | Code splitting, lazy images, virtual scroll, prefetching |
+| Layer              | Technology / Pattern | Key Responsibilities                                               |
+| ------------------ | -------------------- | ------------------------------------------------------------------ |
+| 1. Entry point     | `app.tsx` + Vite     | Bootstrap, providers, global error boundary, Suspense root         |
+| 2. Router          | React Router v6      | Route definitions, lazy loading, role-based guards, redirect logic |
+| 3. Pages           | One file per route   | Compose layout + feature components; minimal logic                 |
+| 4. Feature modules | `features/<domain>/` | All domain logic: components, hooks, local state, types            |
+| 5. Shared UI       | `shared/ui/`         | Reusable primitives used across 2+ features                        |
+| 6. State — server  | TanStack Query       | API data, caching, optimistic updates, background sync             |
+| 6. State — client  | Zustand              | Auth session, exam state, notification queue, UI prefs             |
+| 7. Services        | `services/`          | All API calls; one file per domain; apiClient as shared base       |
+| 8. Cross-cutting   | `lib/` + `hooks/`    | Formatters, validators, feature flags, analytics, logger           |
+| 9. Performance     | Build + runtime      | Code splitting, lazy images, virtual scroll, prefetching           |
 
 ---
 
@@ -235,13 +239,13 @@ lib/
 
 ## Routing & Route Guards
 
-| Route Group | Routes |
-|---|---|
-| Public — no auth | `/assessment/:token` · Candidate exam and results |
-| Auth — pre-auth only | `/login` · `/register` · `/reset-password` |
+| Route Group                     | Routes                                                                 |
+| ------------------------------- | ---------------------------------------------------------------------- |
+| Public — no auth                | `/assessment/:token` · Candidate exam and results                      |
+| Auth — pre-auth only            | `/login` · `/register` · `/reset-password`                             |
 | Employer — auth + employer role | `/dashboard` · `/roles` · `/roles/:id/assessment` · `/results/:roleId` |
-| Future: Admin | `/admin/*` — guarded by admin role flag |
-| Future: Candidate prep | `/prep/*` — guarded by feature flag |
+| Future: Admin                   | `/admin/*` — guarded by admin role flag                                |
+| Future: Candidate prep          | `/prep/*` — guarded by feature flag                                    |
 
 Route guards live in `router/guards.tsx`. All page components are lazy-loaded via `React.lazy()` — a candidate accessing `/assessment/:token` never downloads the employer dashboard bundle.
 
@@ -273,14 +277,14 @@ Route guards live in `router/guards.tsx`. All page components are lazy-loaded vi
 
 ## Phase 2 Scaling — Growth by Addition
 
-| Phase 2 Feature | Where it lives | Integration approach |
-|---|---|---|
-| Candidate prep platform | `features/prep-platform/` | Gated by `featureFlags.ts` — no existing code changes |
-| Video interviews | `features/video-interviews/` | New route group + feature module; WebRTC service in `services/` |
-| ATS integrations | `services/atsSvc.ts` | New service file; employer settings page extended |
-| Admin / white-label | `pages/admin/` + admin route guard | New route group; theme tokens in CSS custom properties |
-| CV analysis | `features/cv-analysis/` | New feature module; hooks into `scoring/` via shared types |
-| Adaptive assessments | Extension of `assessment-gen/` | Feature module extended; API contract changes isolated to service |
+| Phase 2 Feature         | Where it lives                     | Integration approach                                              |
+| ----------------------- | ---------------------------------- | ----------------------------------------------------------------- |
+| Candidate prep platform | `features/prep-platform/`          | Gated by `featureFlags.ts` — no existing code changes             |
+| Video interviews        | `features/video-interviews/`       | New route group + feature module; WebRTC service in `services/`   |
+| ATS integrations        | `services/atsSvc.ts`               | New service file; employer settings page extended                 |
+| Admin / white-label     | `pages/admin/` + admin route guard | New route group; theme tokens in CSS custom properties            |
+| CV analysis             | `features/cv-analysis/`            | New feature module; hooks into `scoring/` via shared types        |
+| Adaptive assessments    | Extension of `assessment-gen/`     | Feature module extended; API contract changes isolated to service |
 
 Feature flags in `lib/featureFlags.ts` allow shipping Phase 2 code behind flags before it is publicly visible — no long-lived feature branches.
 
@@ -288,12 +292,12 @@ Feature flags in `lib/featureFlags.ts` allow shipping Phase 2 code behind flags 
 
 ## Testing Strategy
 
-| Layer | Tooling | Coverage focus |
-|---|---|---|
-| Unit tests | Vitest + Testing Library | Co-located in `features/` — hooks, formatters, validators |
-| Integration tests | Vitest + MSW | Feature components against mocked API responses |
-| E2E tests | Playwright | Assessment submission · scoring · shortlisting · auth flows |
-| Visual regression | Playwright screenshots | Shared UI components — catch layout regressions |
+| Layer             | Tooling                  | Coverage focus                                              |
+| ----------------- | ------------------------ | ----------------------------------------------------------- |
+| Unit tests        | Vitest + Testing Library | Co-located in `features/` — hooks, formatters, validators   |
+| Integration tests | Vitest + MSW             | Feature components against mocked API responses             |
+| E2E tests         | Playwright               | Assessment submission · scoring · shortlisting · auth flows |
+| Visual regression | Playwright screenshots   | Shared UI components — catch layout regressions             |
 
 Tests live next to the code they test (e.g. `QuestionEditor.test.tsx` beside `QuestionEditor.tsx`). Shared test utilities live in a top-level `test/` folder. The services layer is always mocked in tests — no real API calls in CI.
 
@@ -303,29 +307,29 @@ Tests live next to the code they test (e.g. `QuestionEditor.test.tsx` beside `Qu
 
 Enforced by ESLint (`eslint-plugin-import-alias`) in CI — a PR that violates a boundary fails the lint check before code review.
 
-| Module | Allowed imports |
-|---|---|
-| `pages/` | `features/*` (via `index.ts` only), `shared/ui/`, `store/`, `router/` |
-| `features/*` | `shared/ui/`, `services/`, `store/`, `lib/`, `hooks/`, `types/` |
-| `shared/ui/` | `lib/`, `types/` only — never from `features/` or `pages/` |
-| `services/` | `lib/`, `types/` only — never from `features/`, `shared/`, or `store/` |
-| `store/` | `lib/`, `types/` only |
-| `lib/` | `types/` only — no other `src/` folders |
-| `pages/` | Cannot be imported by anything — pages are leaf nodes |
+| Module       | Allowed imports                                                        |
+| ------------ | ---------------------------------------------------------------------- |
+| `pages/`     | `features/*` (via `index.ts` only), `shared/ui/`, `store/`, `router/`  |
+| `features/*` | `shared/ui/`, `services/`, `store/`, `lib/`, `hooks/`, `types/`        |
+| `shared/ui/` | `lib/`, `types/` only — never from `features/` or `pages/`             |
+| `services/`  | `lib/`, `types/` only — never from `features/`, `shared/`, or `store/` |
+| `store/`     | `lib/`, `types/` only                                                  |
+| `lib/`       | `types/` only — no other `src/` folders                                |
+| `pages/`     | Cannot be imported by anything — pages are leaf nodes                  |
 
 ---
 
 ## Appendix — Decision Log
 
-| Decision | Rationale |
-|---|---|
-| TanStack Query over Redux Toolkit Query | Simpler API, better devtools, stale-while-revalidate built in, no boilerplate actions/reducers |
-| Zustand over Context API | No provider wrapping, no re-render propagation, built-in devtools, immer middleware |
-| Vite over CRA / webpack | 10–100x faster HMR, native ESM, simpler config, better DX |
-| Feature-first folder structure over type-first | Feature owns all its code — easier to delete, test, and reason about |
-| Services layer enforced | Changing the API base URL, adding auth headers, or mocking for tests is a single-file change |
-| Virtual scrolling from day one | 1,000 candidates is a realistic v1 load; retrofitting virtual scroll is harder than starting with it |
+| Decision                                       | Rationale                                                                                            |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| TanStack Query over Redux Toolkit Query        | Simpler API, better devtools, stale-while-revalidate built in, no boilerplate actions/reducers       |
+| Zustand over Context API                       | No provider wrapping, no re-render propagation, built-in devtools, immer middleware                  |
+| Vite over CRA / webpack                        | 10–100x faster HMR, native ESM, simpler config, better DX                                            |
+| Feature-first folder structure over type-first | Feature owns all its code — easier to delete, test, and reason about                                 |
+| Services layer enforced                        | Changing the API base URL, adding auth headers, or mocking for tests is a single-file change         |
+| Virtual scrolling from day one                 | 1,000 candidates is a realistic v1 load; retrofitting virtual scroll is harder than starting with it |
 
 ---
 
-*Document maintained by the frontend engineering team. Update this file when architectural decisions change, not after implementation.*
+_Document maintained by the frontend engineering team. Update this file when architectural decisions change, not after implementation._

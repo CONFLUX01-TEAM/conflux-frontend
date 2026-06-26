@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main, staging, prod]
+  push:
+    branches: [main, staging, prod]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  branch-policy:
+    name: Enforce branch promotion flow
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate PR base and head branches
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+          ACTOR: ${{ github.actor }}
+        run: node .github/branch-guard.mjs pr "$BASE" "$HEAD" "$ACTOR"
+
+  quality:
+    name: Typecheck, lint, test & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HUSKY: 0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

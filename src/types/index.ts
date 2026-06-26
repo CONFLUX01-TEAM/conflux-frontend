@@ -1,2 +1,2 @@
-export type { AuthProps } from './auth';
-export type { ButtonProps, InputFieldProps } from './components';
+export type { AuthFormProps, AuthState } from '@/features/auth/types'
+export type { ButtonProps, InputFieldProps, SpinnerProps } from '@/shared/types/ui'
