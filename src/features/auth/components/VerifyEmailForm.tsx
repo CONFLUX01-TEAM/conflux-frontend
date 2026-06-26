@@ -55,7 +55,7 @@ const VerifyEmailForm = () => {
           <div className="h-full w-full max-w-[44.75rem] xl:min-h-[58.25rem] rounded-xl overflow-hidden bg-[#0D2D54]">
             <img
               src="/auth-img.svg"
-              alt="Conflux hiring illustration"
+              alt="Conflux Hiring illustration"
               className="h-full w-full object-contain"
             />
           </div>

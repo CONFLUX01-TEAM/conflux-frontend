@@ -4,12 +4,13 @@ import { Outlet } from 'react-router-dom'
 const testimonials = [
   {
     quote:
-      'I love how conflux has greatly reduced the mental load of hiring staff, now i look foward to interviews because the best candidates are infront of me',
+      'I love how Conflux Hiring has greatly reduced the mental load of hiring staff, now i look foward to interviews because the best candidates are infront of me',
     author: 'Sefa, HR Manager',
     company: 'Dynolabs',
   },
   {
-    quote: 'Conflux completely transformed our hiring pipeline. We close roles 50% faster now.',
+    quote:
+      'Conflux Hiring completely transformed our hiring pipeline. We close roles 50% faster now.',
     author: 'Jane Doe, Talent Acquisition',
     company: 'TechNova',
   },
@@ -19,7 +20,8 @@ const testimonials = [
     company: 'BuildCorp',
   },
   {
-    quote: 'Finding the right talent used to be a guessing game. Conflux makes it a science.',
+    quote:
+      'Finding the right talent used to be a guessing game. Conflux Hiring makes it a science.',
     author: 'Sarah Lee, Head of People',
     company: 'NextGen',
   },
@@ -40,7 +42,7 @@ const OnboardingLayout = () => {
         <div>
           <img
             src="/company-logo-white.svg"
-            alt="Conflux"
+            alt="Conflux Hiring"
             className="w-[6.44rem] h-[1.81rem] mt-[3rem] mb-[5rem]"
           />
           <h2 className="text-[#00F0FF] text-[0.88rem] font-medium">GET STARTED</h2>

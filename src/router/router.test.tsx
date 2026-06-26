@@ -11,6 +11,6 @@ describe('App', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('heading', { name: /welcome to conflux/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /welcome to conflux hiring/i })).toBeInTheDocument()
   })
 })
