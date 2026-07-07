@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '@/app/App'
 
 const encodeSegment = (value: object) => btoa(JSON.stringify(value)).replace(/=+$/, '')
@@ -9,7 +9,7 @@ const encodeSegment = (value: object) => btoa(JSON.stringify(value)).replace(/=+
 const makeJwt = (exp: number) =>
   `${encodeSegment({ alg: 'HS256', typ: 'JWT' })}.${encodeSegment({ sub: 'user-1', exp })}.sig`
 
-const storeSession = (exp: number) => {
+const storeSession = (exp: number, onboarded?: boolean) => {
   localStorage.setItem('access_token', makeJwt(exp))
   localStorage.setItem('refresh_token', 'refresh-token')
   localStorage.setItem(
@@ -21,7 +21,26 @@ const storeSession = (exp: number) => {
       isEmailVerified: true,
     }),
   )
+  if (typeof onboarded === 'boolean') {
+    localStorage.setItem(
+      'onboarding_status',
+      JSON.stringify({ userId: 'user-1', completed: onboarded }),
+    )
+  }
 }
+
+// The AuthProvider revalidates onboarding via GET /onboarding/employer — keep it
+// off the network and let each test decide the server's answer.
+const stubOnboardingStatus = (completed: boolean) =>
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ statusCode: 200, message: 'ok', data: { completed } }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    ),
+  )
 
 const renderAt = (path: string) =>
   render(
@@ -33,6 +52,11 @@ const renderAt = (path: string) =>
 describe('App routing', () => {
   beforeEach(() => {
     localStorage.clear()
+    stubOnboardingStatus(true)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   it('redirects the home route to sign in', () => {
@@ -57,19 +81,35 @@ describe('App routing', () => {
     expect(screen.getByText(/session has expired/i)).toBeInTheDocument()
   })
 
-  it('lets a signed-in user reach the dashboard', () => {
-    storeSession(Math.floor(Date.now() / 1000) + 3600)
+  it('lets an onboarded user reach the dashboard', async () => {
+    storeSession(Math.floor(Date.now() / 1000) + 3600, true)
 
     renderAt('/dashboard')
 
-    expect(screen.getByRole('heading', { name: /welcome, ada lovelace/i })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: /welcome, ada lovelace/i }),
+    ).toBeInTheDocument()
   })
 
-  it('keeps signed-in users out of the sign-in page', () => {
-    storeSession(Math.floor(Date.now() / 1000) + 3600)
+  it('routes a not-yet-onboarded employer to the onboarding form', async () => {
+    storeSession(Math.floor(Date.now() / 1000) + 3600, false)
+    stubOnboardingStatus(false)
+
+    renderAt('/dashboard')
+
+    expect(
+      await screen.findByRole('heading', { name: /what is your company called/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps signed-in users out of the sign-in page', async () => {
+    storeSession(Math.floor(Date.now() / 1000) + 3600, true)
 
     renderAt('/signin')
 
+    expect(
+      await screen.findByRole('heading', { name: /welcome, ada lovelace/i }),
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole('heading', { name: /welcome to conflux hiring/i }),
     ).not.toBeInTheDocument()

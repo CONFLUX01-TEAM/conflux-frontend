@@ -1,13 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
+import { useAuth } from '@/features/auth/context/auth-context'
 import type { OnboardingOutletContext } from '@/features/onboarding/types'
-import {
-  completeEmployerOnboarding,
-  getEmployerOnboardingStatus,
-  isApiError,
-  uploadCompanyLogo,
-} from '@/services/api-client'
+import { completeEmployerOnboarding, isApiError, uploadCompanyLogo } from '@/services/api-client'
 import Button from '@/shared/ui/Button'
 import InputField from '@/shared/ui/InputField'
 import Spinner from '@/shared/ui/Spinner'
@@ -26,6 +22,7 @@ const extractLogoUrl = (data: Record<string, unknown>): string | undefined => {
 const OnboardingSteps = () => {
   const { step, setStep } = useOutletContext<OnboardingOutletContext>()
   const navigate = useNavigate()
+  const { markOnboardingComplete } = useAuth()
   const [companyName, setCompanyName] = useState('')
   const [location, setLocation] = useState('')
   const [linkedin, setLinkedin] = useState('')
@@ -35,21 +32,6 @@ const OnboardingSteps = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [showError, setShowError] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  // StrictMode double-invokes effects in dev — only act on the status once.
-  const statusCheckedRef = useRef(false)
-
-  // Employers who already finished onboarding shouldn't see the form again.
-  useEffect(() => {
-    if (statusCheckedRef.current) return
-    statusCheckedRef.current = true
-    getEmployerOnboardingStatus()
-      .then(({ data }) => {
-        if (data?.completed) navigate('/dashboard', { replace: true })
-      })
-      .catch(() => {
-        /* not-yet-onboarded (or a 403/network hiccup) — just show the form */
-      })
-  }, [navigate])
 
   const currentStepConfig = (() => {
     switch (step) {
@@ -153,12 +135,14 @@ const OnboardingSteps = () => {
         ...(logoUrl ? { logoUrl } : {}),
       })
 
+      markOnboardingComplete()
       toast.success('Onboarding complete! Welcome aboard.')
       navigate('/dashboard', { replace: true })
     } catch (err) {
       const apiErr = isApiError(err) ? err : null
       // Onboarding was already finished (e.g. in another tab) — treat as success.
       if (apiErr?.status === 409) {
+        markOnboardingComplete()
         navigate('/dashboard', { replace: true })
         return
       }

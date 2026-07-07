@@ -6,7 +6,7 @@ import SignUpPage from '@/pages/auth/SignUpPage'
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
 import OnboardingPage from '@/pages/onboarding/OnboardingPage'
-import { GuestOnly, RequireAuth } from '@/router/guards'
+import { GuestOnly, RequireAuth, RequireOnboarded, RequireOnboarding } from '@/router/guards'
 import AuthLayout from '@/shared/layout/AuthLayout'
 import MainLayout from '@/shared/layout/MainLayout'
 import OnboardingLayout from '@/shared/layout/OnboardingLayout'
@@ -29,12 +29,16 @@ export const AppRouter = () => {
       </Route>
 
       <Route element={<RequireAuth />}>
-        <Route element={<OnboardingLayout />}>
-          <Route path="onboarding" element={<OnboardingPage />} />
+        <Route element={<RequireOnboarding />}>
+          <Route element={<OnboardingLayout />}>
+            <Route path="onboarding" element={<OnboardingPage />} />
+          </Route>
         </Route>
 
-        <Route path="dashboard" element={<MainLayout />}>
-          <Route index element={<DashboardPage />} />
+        <Route element={<RequireOnboarded />}>
+          <Route path="dashboard" element={<MainLayout />}>
+            <Route index element={<DashboardPage />} />
+          </Route>
         </Route>
       </Route>
 

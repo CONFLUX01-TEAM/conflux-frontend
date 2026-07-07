@@ -3,6 +3,7 @@ import type { AuthUser } from '@/services/api-client'
 const TOKEN_KEY = 'access_token'
 const REFRESH_TOKEN_KEY = 'refresh_token'
 const USER_KEY = 'auth_user'
+const ONBOARDING_KEY = 'onboarding_status'
 
 /**
  * Dispatched on `window` whenever the stored session changes (sign-in,
@@ -68,6 +69,33 @@ export const getStoredUser = (): SessionUser | null => {
   }
 }
 
+/**
+ * Cached employer-onboarding completion flag, keyed by user id so a different
+ * account on the same device never reuses a stale value. Lets the app make an
+ * instant, flicker-free routing decision while the server check revalidates.
+ * Returns null when nothing is cached for this user.
+ */
+export const getCachedOnboarding = (userId: string): boolean | null => {
+  try {
+    const raw = localStorage.getItem(ONBOARDING_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { userId?: string; completed?: boolean }
+    return parsed?.userId === userId && typeof parsed.completed === 'boolean'
+      ? parsed.completed
+      : null
+  } catch {
+    return null
+  }
+}
+
+export const setCachedOnboarding = (userId: string, completed: boolean): void => {
+  try {
+    localStorage.setItem(ONBOARDING_KEY, JSON.stringify({ userId, completed }))
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 /** Persists the JWT session + user profile returned by login / Google sign-in. */
 export const setSession = (user: AuthUser): void => {
   setToken(user.accessToken)
@@ -92,6 +120,7 @@ export const clearSession = (): void => {
     localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem(REFRESH_TOKEN_KEY)
     localStorage.removeItem(USER_KEY)
+    localStorage.removeItem(ONBOARDING_KEY)
   } catch {
     /* ignore */
   }
