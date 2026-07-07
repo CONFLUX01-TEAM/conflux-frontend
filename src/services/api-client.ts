@@ -44,12 +44,16 @@ const fallbackMessage = (status: number): string => {
 const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
   const token = getToken()
 
+  // FormData sets its own multipart `Content-Type` (with the boundary) — leave
+  // it to the browser; only JSON bodies get the explicit header.
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
+
   let res: Response
   try {
     res = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
@@ -201,4 +205,69 @@ export const googleSignIn = (idToken: string, jobId?: string) =>
   request<ApiEnvelope<AuthUser>>('/auth/google', {
     method: 'POST',
     body: JSON.stringify(jobId ? { idToken, jobId } : { idToken }),
+  })
+
+// ─── Onboarding ──────────────────────────────────────────────────────────────
+
+/** Company profile captured during employer onboarding. */
+export interface CompanyProfile {
+  id?: string
+  name?: string
+  location?: string
+  linkedinUrl?: string
+  description?: string
+  logoUrl?: string
+}
+
+/**
+ * `data` payload of the employer onboarding status / completion endpoints.
+ *
+ * The backend documents this as a generic "completion flag and company
+ * snapshot", so the fields are read defensively at the call site rather than
+ * relied on by exact name.
+ */
+export interface EmployerOnboardingStatus {
+  completed?: boolean
+  company?: CompanyProfile | null
+  [key: string]: unknown
+}
+
+/** Fields collected across the employer onboarding steps. */
+export interface EmployerOnboardingPayload {
+  name: string
+  location: string
+  linkedinUrl: string
+  description: string
+  /** URL returned by {@link uploadCompanyLogo}. */
+  logoUrl?: string
+}
+
+/**
+ * `GET /onboarding/employer` — completion flag + company snapshot.
+ * Requires a signed-in employer with a verified email (403 otherwise).
+ */
+export const getEmployerOnboardingStatus = () =>
+  request<ApiEnvelope<EmployerOnboardingStatus>>('/onboarding/employer')
+
+/**
+ * `POST /onboarding/employer/logo` — uploads the company logo (PNG/JPG/SVG) and
+ * returns its hosted URL. Rejected with 409 once onboarding is already complete.
+ */
+export const uploadCompanyLogo = (logo: File) => {
+  const formData = new FormData()
+  formData.append('logo', logo)
+  return request<ApiEnvelope<Record<string, unknown>>>('/onboarding/employer/logo', {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+/**
+ * `POST /onboarding/employer/complete` — saves the company profile and finishes
+ * onboarding. Returns 400 on field validation errors and 409 if already complete.
+ */
+export const completeEmployerOnboarding = (payload: EmployerOnboardingPayload) =>
+  request<ApiEnvelope<EmployerOnboardingStatus>>('/onboarding/employer/complete', {
+    method: 'POST',
+    body: JSON.stringify(payload),
   })
