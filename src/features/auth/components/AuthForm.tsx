@@ -1,23 +1,31 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import type { AuthFormProps } from '@/features/auth/types'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
+import AuthNotice from '@/features/auth/components/AuthNotice'
+import GoogleSignInButton from '@/features/auth/components/GoogleSignInButton'
+import type { AuthFormProps, AuthRouteState } from '@/features/auth/types'
+import { resolvePostSignInPath } from '@/features/auth/constants'
 import { validateAuthForm } from '@/lib/validation'
-import { startGoogleLogin } from '@/services/auth.service'
+import { isApiError, login, register } from '@/services/api-client'
+import { setSession } from '@/services/auth.service'
 import Button from '@/shared/ui/Button'
 import InputField from '@/shared/ui/InputField'
+import Spinner from '@/shared/ui/Spinner'
+
+const GENERIC_ERROR = 'Something went wrong. Please try again.'
 
 const AuthForm = ({ authState }: AuthFormProps) => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const isSignIn = authState === 'signin'
+  // Talent sign-ins arrive through a job link (`?jobId=…`); employers omit it.
+  const jobId = searchParams.get('jobId') ?? undefined
+  const routeState = (location.state ?? {}) as AuthRouteState
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
-
-  const handleGoogleLogin = () => {
-    setGoogleLoading(true)
-    startGoogleLogin()
-  }
+  const [submitting, setSubmitting] = useState(false)
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -41,16 +49,64 @@ const AuthForm = ({ authState }: AuthFormProps) => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleForm = (e: React.FormEvent) => {
+  const handleSignIn = async () => {
+    const { data } = await login(formData.email, formData.password)
+    setSession(data)
+    if (!data.isEmailVerified) {
+      // Shouldn't normally happen (unverified logins are rejected with 401),
+      // but if it does, finish verification before letting them in.
+      navigate('/verify-email', { state: { email: formData.email, needsOtp: true } })
+      return
+    }
+    navigate(resolvePostSignInPath(routeState), { replace: true })
+  }
+
+  const handleSignUp = async () => {
+    await register(formData.fullName.trim(), formData.email, formData.password)
+    navigate('/verify-email', {
+      state: {
+        email: formData.email,
+        notice: 'Account created! We’ve emailed you a 6-digit verification code.',
+      },
+    })
+  }
+
+  const handleForm = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (validate()) {
-      if (!isSignIn) {
-        navigate('/verify-email')
+    if (submitting || !validate()) return
+
+    setSubmitting(true)
+    try {
+      if (isSignIn) {
+        await handleSignIn()
       } else {
-        console.log('Sign in successful', formData)
-        alert('Sign in successful! (Dashboard coming soon)')
-        setFormData({ fullName: '', email: '', password: '', confirmPassword: '' })
+        await handleSignUp()
       }
+    } catch (err) {
+      const apiErr = isApiError(err) ? err : null
+      const message = apiErr?.message || GENERIC_ERROR
+
+      if (isSignIn && apiErr?.status === 401 && /verif/i.test(message)) {
+        // Account exists but the email was never verified — send a fresh code.
+        navigate('/verify-email', {
+          state: {
+            email: formData.email,
+            needsOtp: true,
+            notice: 'Almost there! Verify your email to finish signing in.',
+          },
+        })
+        return
+      }
+      if (!isSignIn && apiErr?.status === 409) {
+        setErrors((prev) => ({
+          ...prev,
+          email: 'This email is already registered. Try signing in instead.',
+        }))
+        return
+      }
+      toast.error(apiErr?.details?.length ? `${message} ${apiErr.details.join('. ')}` : message)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -77,6 +133,8 @@ const AuthForm = ({ authState }: AuthFormProps) => {
             </p>
           </div>
 
+          {routeState.notice && <AuthNotice kind="info">{routeState.notice}</AuthNotice>}
+
           <div className="mt-6 sm:mt-8 mb-4 sm:mb-6 p-1.5 sm:p-2 flex justify-center gap-2 sm:gap-4 md:gap-8 2xl:gap-[5.63rem] border-[0.06rem] border-[#E6E6E6] rounded-[0.5rem]">
             <Button
               type="button"
@@ -100,6 +158,7 @@ const AuthForm = ({ authState }: AuthFormProps) => {
                 placeholder="Adewale Adebisi"
                 value={formData.fullName}
                 onChange={handleChange}
+                disabled={submitting}
                 error={!!errors.fullName}
                 errorMessage={errors.fullName}
               />
@@ -111,6 +170,7 @@ const AuthForm = ({ authState }: AuthFormProps) => {
               placeholder="Adewaleadebisi@gmail.com"
               value={formData.email}
               onChange={handleChange}
+              disabled={submitting}
               error={!!errors.email}
               errorMessage={errors.email}
             />
@@ -129,9 +189,20 @@ const AuthForm = ({ authState }: AuthFormProps) => {
               onIconClick={() => setShowPassword(!showPassword)}
               value={formData.password}
               onChange={handleChange}
+              disabled={submitting}
               error={!!errors.password}
               errorMessage={errors.password}
             />
+            {isSignIn && (
+              <div className="mt-2 flex justify-end">
+                <Link
+                  to="/forgot-password"
+                  className="font-inter text-[0.88rem] font-medium text-[#0D2D54] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            )}
             {!isSignIn && (
               <InputField
                 label="Confirm Password"
@@ -148,14 +219,29 @@ const AuthForm = ({ authState }: AuthFormProps) => {
                 onIconClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                disabled={submitting}
                 error={!!errors.confirmPassword}
                 errorMessage={errors.confirmPassword}
               />
             )}
             <Button
               type="submit"
-              label={isSignIn ? 'Sign In' : 'Signup'}
-              className="mt-[1.25rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium shrink-0"
+              disabled={submitting}
+              icon={
+                submitting ? (
+                  <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
+                ) : undefined
+              }
+              label={
+                submitting
+                  ? isSignIn
+                    ? 'Signing you in…'
+                    : 'Creating your account…'
+                  : isSignIn
+                    ? 'Sign In'
+                    : 'Signup'
+              }
+              className={`mt-[1.25rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium shrink-0 ${submitting ? 'opacity-80 cursor-wait' : ''}`}
             />
 
             <div className="flex items-center gap-4 my-[1.25rem]">
@@ -163,20 +249,7 @@ const AuthForm = ({ authState }: AuthFormProps) => {
               <span className="font-inter text-[0.75rem] text-[#9D9D9D]">or continue with</span>
               <div className="flex-1 h-[1px] bg-[#9D9D9D]"></div>
             </div>
-            <div>
-              <Button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={googleLoading}
-                label={googleLoading ? 'Redirecting to Google…' : 'Continue with google'}
-                icon={
-                  !googleLoading && (
-                    <img src="/google-icon.svg" alt="Google" className="size-[1.25rem]" />
-                  )
-                }
-                className="mb-[1.25rem] text-[#0D2D54] border-[0.06rem] rounded-[0.5rem] border-[#E6E6E6] bg-white py-[0.91em] font-inter text-base font-medium shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
-              />
-            </div>
+            <GoogleSignInButton jobId={jobId} context={isSignIn ? 'signin' : 'signup'} />
 
             {isSignIn ? (
               <p className="text-center font-inter text-sm sm:text-base text-[#9D9D9D]">
