@@ -32,4 +32,3 @@ coverage
 # pnpm
 .pnpm-store/
 .pnpm-home/
-pnpm-lock.yaml
