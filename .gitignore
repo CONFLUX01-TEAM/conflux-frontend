@@ -28,3 +28,8 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# pnpm
+.pnpm-store/
+.pnpm-home/
+pnpm-lock.yaml
