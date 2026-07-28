@@ -4,6 +4,25 @@
 @theme {
   --font-sans: 'Work Sans', sans-serif;
   --font-inter: 'Inter', sans-serif;
+
+  /* Brand surfaces. */
+  --color-brand: #0d2d54;
+  --color-line: #e6e6e6;
+  --color-muted: #9d9d9d;
+  --color-surface-subtle: #f7f9fc;
+
+  /* One feedback palette for every transient surface — inline notices, field
+     errors and toasts — kept desaturated so it sits beside the navy/hairline
+     auth and onboarding design instead of shouting over it. */
+  --color-notice-info: #0d2d54;
+  --color-notice-info-surface: #f2f6fb;
+  --color-notice-info-line: #d8e3f0;
+  --color-notice-success: #1b6b48;
+  --color-notice-success-surface: #f0f7f3;
+  --color-notice-success-line: #cde5d8;
+  --color-notice-error: #b3312e;
+  --color-notice-error-surface: #fcf3f3;
+  --color-notice-error-line: #f0d6d6;
 }
 
 @layer base {
@@ -14,4 +33,99 @@
   body {
     @apply bg-white text-black font-sans overflow-x-hidden min-w-0;
   }
+}
+
+/* Toast theme — mirrors the notice palette above so a toast reads as the same
+   component as an inline AuthNotice, just floating. Sonner injects its own
+   stylesheet at runtime, so these rules out-specify it rather than rely on
+   source order. */
+[data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled='true'] {
+  --toast-accent: var(--color-brand);
+  gap: 0.63rem;
+  padding: 0.88rem 1rem;
+  border: 0.06rem solid var(--color-line);
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #222222;
+  box-shadow: 0 0.5rem 1.5rem rgb(13 45 84 / 0.1);
+  font-family: var(--font-inter);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+[data-sonner-toaster][data-sonner-theme]
+  [data-sonner-toast][data-styled='true'][data-type='success'] {
+  --toast-accent: var(--color-notice-success);
+  background: var(--color-notice-success-surface);
+  border-color: var(--color-notice-success-line);
+  color: var(--color-notice-success);
+}
+
+[data-sonner-toaster][data-sonner-theme]
+  [data-sonner-toast][data-styled='true'][data-type='error'] {
+  --toast-accent: var(--color-notice-error);
+  background: var(--color-notice-error-surface);
+  border-color: var(--color-notice-error-line);
+  color: var(--color-notice-error);
+}
+
+[data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled='true'][data-type='info'] {
+  --toast-accent: var(--color-notice-info);
+  background: var(--color-notice-info-surface);
+  border-color: var(--color-notice-info-line);
+  color: var(--color-notice-info);
+}
+
+[data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled='true'] [data-title] {
+  font-family: var(--font-inter);
+  font-weight: 500;
+  color: inherit;
+}
+
+[data-sonner-toaster][data-sonner-theme]
+  [data-sonner-toast][data-styled='true']
+  [data-description] {
+  font-family: var(--font-inter);
+  color: inherit;
+  opacity: 0.8;
+}
+
+[data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled='true'] [data-icon] {
+  width: 1.13rem;
+  height: 1.13rem;
+  margin: 0;
+  color: var(--toast-accent);
+}
+
+[data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled='true'] [data-icon] svg {
+  margin: 0;
+}
+
+[data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled='true'] [data-button] {
+  height: 1.75rem;
+  padding: 0 0.75rem;
+  border-radius: 0.38rem;
+  background: var(--toast-accent);
+  color: #ffffff;
+  font-family: var(--font-inter);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+[data-sonner-toaster][data-sonner-theme]
+  [data-sonner-toast][data-styled='true']
+  [data-close-button] {
+  width: 1.25rem;
+  height: 1.25rem;
+  background: #ffffff;
+  border: 0.06rem solid var(--color-line);
+  color: var(--color-muted);
+}
+
+[data-sonner-toaster][data-sonner-theme]
+  [data-sonner-toast][data-styled='true']:hover
+  [data-close-button]:hover {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-notice-info-line);
+  color: var(--color-brand);
 }

@@ -5,10 +5,12 @@ interface AuthNoticeProps {
   children: ReactNode
 }
 
+// Same palette the toasts use (see `index.css`) so inline and floating
+// feedback read as one component in two positions.
 const STYLES: Record<NonNullable<AuthNoticeProps['kind']>, string> = {
-  error: 'border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]',
-  info: 'border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]',
-  success: 'border-[#A7F3D0] bg-[#ECFDF5] text-[#047857]',
+  error: 'border-notice-error-line bg-notice-error-surface text-notice-error',
+  info: 'border-notice-info-line bg-notice-info-surface text-notice-info',
+  success: 'border-notice-success-line bg-notice-success-surface text-notice-success',
 }
 
 /** Inline banner for form-level feedback (errors, notices, confirmations). */

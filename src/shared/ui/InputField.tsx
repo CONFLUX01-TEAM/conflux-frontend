@@ -16,7 +16,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
           <input
             id={inputId}
             ref={ref}
-            className={`w-full px-4 py-3 rounded-md border bg-white text-[0.88rem] text-black placeholder:text-[#9D9D9D] transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:border-transparent ${error || errorMessage ? 'border-[#EF4444] focus:ring-[#EF4444]/20' : 'border-gray-200 focus:border-[#0D2D54] focus:ring-[#0D2D54]/20 hover:border-gray-300'} disabled:cursor-not-allowed ${icon ? 'pr-12' : ''} ${className}`}
+            className={`w-full px-4 py-3 rounded-md border bg-white text-[0.88rem] text-black placeholder:text-[#9D9D9D] transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:border-transparent ${error || errorMessage ? 'border-notice-error focus:ring-notice-error/20' : 'border-[#E6E6E6] focus:border-[#0D2D54] focus:ring-[#0D2D54]/20 hover:border-[#CFCFCF]'} disabled:cursor-not-allowed ${icon ? 'pr-12' : ''} ${className}`}
             {...props}
           />
           {icon && (
@@ -29,7 +29,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
           )}
         </div>
         {errorMessage && (
-          <span className="text-[0.75rem] text-[#EF4444] mt-1 block font-inter">
+          <span className="text-[0.75rem] text-notice-error mt-1 block font-inter">
             {errorMessage}
           </span>
         )}
