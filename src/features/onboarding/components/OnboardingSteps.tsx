@@ -6,7 +6,6 @@ import type { OnboardingOutletContext } from '@/features/onboarding/types'
 import { completeEmployerOnboarding, isApiError, uploadCompanyLogo } from '@/services/api-client'
 import Button from '@/shared/ui/Button'
 import InputField from '@/shared/ui/InputField'
-import Spinner from '@/shared/ui/Spinner'
 
 const LOGO_URL_KEYS = ['logoUrl', 'url', 'secureUrl', 'logo'] as const
 
@@ -207,13 +206,13 @@ const OnboardingSteps = () => {
             placeholder={currentStepConfig.placeholder}
             value={currentStepConfig.value as string}
             onChange={currentStepConfig.onChange}
-            className="w-full py-[1rem] px-[1.2rem] border border-[#E6E6E6] rounded-[0.5rem] outline-none focus:border-[#0D2D54] resize-none h-[9rem] font-sans text-[0.88rem] text-black placeholder:text-[#9D9D9D]"
+            className="w-full py-[1rem] px-[1.2rem] border border-[#E6E6E6] rounded-[0.5rem] resize-none h-[9rem] font-sans text-[0.88rem] text-black placeholder:text-[#9D9D9D] transition-colors duration-200 ease-in-out focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#0D2D54]/20 hover:border-[#CFCFCF]"
           />
         )}
 
         {currentStepConfig.type === 'file' && (
           <div
-            className={`w-full border-2 border-dashed ${showError ? 'border-red-500 bg-red-50' : 'border-[#E6E6E6]'} rounded-[0.5rem] flex flex-col items-center justify-center py-[3.5rem] cursor-pointer hover:bg-gray-50 transition-colors`}
+            className={`w-full border-2 border-dashed ${showError ? 'border-notice-error bg-notice-error-surface' : 'border-[#E6E6E6]'} rounded-[0.5rem] flex flex-col items-center justify-center py-[3.5rem] cursor-pointer hover:bg-surface-subtle transition-colors`}
             onClick={() => fileInputRef.current?.click()}
           >
             <input
@@ -255,7 +254,7 @@ const OnboardingSteps = () => {
         )}
 
         {showError && (
-          <p className="text-red-500 text-[0.8rem] mt-2 font-medium">
+          <p className="text-notice-error text-[0.75rem] mt-2 font-inter">
             {currentStepConfig.errorMessage}
           </p>
         )}
@@ -266,22 +265,17 @@ const OnboardingSteps = () => {
               label="Back"
               onClick={handleBack}
               disabled={isLoading}
-              className="px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] bg-white text-black border border-[#E6E6E6] hover:bg-gray-50 transition-all"
+              className="px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] bg-white text-black border border-[#E6E6E6] hover:bg-surface-subtle transition-all"
             />
           )}
           <Button
             label={step === 5 ? 'Finish' : 'Continue'}
             onClick={handleContinue}
-            disabled={isLoading}
-            icon={
-              isLoading ? (
-                <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-              ) : undefined
-            }
+            loading={isLoading}
             className={`px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] transition-all ${
               currentStepConfig.isValid
                 ? 'bg-[#0D2D54] text-white hover:bg-[#0D2D54]/90 shadow-sm'
-                : 'bg-[#93B2F0] text-white opacity-80 cursor-default'
+                : 'bg-[#0D2D54]/40 text-white cursor-default'
             }`}
           />
         </div>
