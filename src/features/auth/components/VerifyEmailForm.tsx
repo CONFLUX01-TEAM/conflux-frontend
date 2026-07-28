@@ -144,14 +144,9 @@ const VerifyEmailForm = () => {
 
               <Button
                 type="submit"
-                disabled={verifying}
-                icon={
-                  verifying ? (
-                    <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-                  ) : undefined
-                }
-                label={verifying ? 'Verifying…' : 'Verify Email'}
-                className={`bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] w-full max-w-[26.63rem] font-inter text-base font-medium ${verifying ? 'opacity-80 cursor-wait' : ''}`}
+                loading={verifying}
+                label="Verify Email"
+                className="bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] w-full max-w-[26.63rem] font-inter text-base font-medium"
               />
 
               <div className="mt-[2.5rem] text-center font-inter text-[0.88rem]">
@@ -165,9 +160,11 @@ const VerifyEmailForm = () => {
                     type="button"
                     onClick={handleResend}
                     disabled={resending}
-                    className="text-[#0D2D54] font-medium hover:underline focus:outline-none disabled:opacity-60"
+                    aria-busy={resending || undefined}
+                    className="inline-flex items-center gap-2 text-[#0D2D54] font-medium hover:underline focus:outline-none disabled:opacity-60"
                   >
-                    {resending ? 'Sending a new code…' : 'Resend OTP'}
+                    {resending && <Spinner size="sm" className="text-current" />}
+                    Resend OTP
                   </button>
                 )}
               </div>

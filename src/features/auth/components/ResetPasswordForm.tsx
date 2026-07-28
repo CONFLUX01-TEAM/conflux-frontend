@@ -105,7 +105,7 @@ const ResetPasswordForm = () => {
         <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col mt-6 text-left">
           <OtpInput value={otp} onChange={setOtp} disabled={submitting} />
           {errors.otp && (
-            <span className="text-[0.75rem] text-[#EF4444] mt-2 block font-inter text-center">
+            <span className="text-[0.75rem] text-notice-error mt-2 block font-inter text-center">
               {errors.otp}
             </span>
           )}
@@ -157,14 +157,9 @@ const ResetPasswordForm = () => {
 
           <Button
             type="submit"
-            disabled={submitting}
-            icon={
-              submitting ? (
-                <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-              ) : undefined
-            }
-            label={submitting ? 'Resetting password…' : 'Reset Password'}
-            className={`mt-[1.5rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium ${submitting ? 'opacity-80 cursor-wait' : ''}`}
+            loading={submitting}
+            label="Reset Password"
+            className="mt-[1.5rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium"
           />
         </form>
 
@@ -179,9 +174,11 @@ const ResetPasswordForm = () => {
               type="button"
               onClick={handleResend}
               disabled={resending}
-              className="text-[#0D2D54] font-medium hover:underline focus:outline-none disabled:opacity-60"
+              aria-busy={resending || undefined}
+              className="inline-flex items-center gap-2 text-[#0D2D54] font-medium hover:underline focus:outline-none disabled:opacity-60"
             >
-              {resending ? 'Sending a new code…' : 'Resend code'}
+              {resending && <Spinner size="sm" className="text-current" />}
+              Resend code
             </button>
           )}
         </div>

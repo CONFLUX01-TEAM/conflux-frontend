@@ -37,28 +37,22 @@ const GoogleSignInButton = ({ jobId, context = 'signin' }: GoogleSignInButtonPro
 
   const showOverlay = sdkStatus === 'ready' && !submitting
 
-  const label = submitting
-    ? 'Signing you in…'
-    : sdkStatus === 'loading'
-      ? 'Loading Google…'
-      : 'Continue with google'
-
   return (
     <div className="mb-[1.25rem]">
       <div className="relative">
         {/* Presentational button — the real Google button is overlaid on top. */}
         <div
+          aria-busy={isBusy || undefined}
           aria-hidden={showOverlay}
-          className={`pointer-events-none flex w-full select-none items-center justify-center gap-2 rounded-[0.5rem] border-[0.06rem] border-[#E6E6E6] bg-white py-[0.91em] font-inter text-base font-medium text-[#0D2D54] transition-opacity duration-200 ${
-            isBusy ? 'opacity-70' : ''
-          }`}
+          className="pointer-events-none flex w-full select-none items-center justify-center gap-2 rounded-[0.5rem] border-[0.06rem] border-[#E6E6E6] bg-white py-[0.91em] font-inter text-base font-medium text-[#0D2D54] transition-opacity duration-200"
         >
+          {/* Same busy treatment as Button: spinner in the icon slot, label unchanged. */}
           {isBusy ? (
-            <Spinner className="text-[#0D2D54]" wrapperClassName="bg-transparent" />
+            <Spinner size="sm" className="text-current" />
           ) : (
             <img src="/google-icon.svg" alt="" aria-hidden className="size-[1.25rem]" />
           )}
-          <span>{label}</span>
+          <span>Continue with google</span>
         </div>
 
         {showOverlay && (

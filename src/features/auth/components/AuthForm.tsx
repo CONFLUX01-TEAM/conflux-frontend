@@ -10,7 +10,6 @@ import { isApiError, login, register } from '@/services/api-client'
 import { setSession } from '@/services/auth.service'
 import Button from '@/shared/ui/Button'
 import InputField from '@/shared/ui/InputField'
-import Spinner from '@/shared/ui/Spinner'
 
 const GENERIC_ERROR = 'Something went wrong. Please try again.'
 
@@ -226,22 +225,9 @@ const AuthForm = ({ authState }: AuthFormProps) => {
             )}
             <Button
               type="submit"
-              disabled={submitting}
-              icon={
-                submitting ? (
-                  <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-                ) : undefined
-              }
-              label={
-                submitting
-                  ? isSignIn
-                    ? 'Signing you in…'
-                    : 'Creating your account…'
-                  : isSignIn
-                    ? 'Sign In'
-                    : 'Signup'
-              }
-              className={`mt-[1.25rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium shrink-0 ${submitting ? 'opacity-80 cursor-wait' : ''}`}
+              loading={submitting}
+              label={isSignIn ? 'Sign In' : 'Signup'}
+              className="mt-[1.25rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium shrink-0"
             />
 
             <div className="flex items-center gap-4 my-[1.25rem]">
