@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/features/auth'
 import Button from '@/shared/ui/Button'
-import Spinner from '@/shared/ui/Spinner'
 
 const DashboardPage = () => {
   const { user, signOut } = useAuth()
@@ -22,15 +21,10 @@ const DashboardPage = () => {
       <p className="font-inter text-base text-[#9D9D9D]">You're signed in.</p>
       <Button
         type="button"
-        disabled={signingOut}
-        icon={
-          signingOut ? (
-            <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-          ) : undefined
-        }
-        label={signingOut ? 'Signing out…' : 'Log out'}
+        loading={signingOut}
+        label="Log out"
         onClick={handleLogout}
-        className={`mt-2 bg-[#0D2D54] text-white rounded-[0.5rem] py-3 px-8 font-inter text-base font-medium ${signingOut ? 'opacity-80 cursor-wait' : ''}`}
+        className="mt-2 bg-[#0D2D54] text-white rounded-[0.5rem] py-3 px-8 font-inter text-base font-medium"
       />
     </div>
   )

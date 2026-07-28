@@ -7,7 +7,7 @@ import Spinner from '@/shared/ui/Spinner'
 /** Full-screen holding state shown while an onboarding decision resolves. */
 const GateLoader = () => (
   <div className="flex min-h-screen items-center justify-center bg-white">
-    <Spinner className="h-8 w-8 text-[#0D2D54]" wrapperClassName="bg-transparent p-0" />
+    <Spinner size="lg" className="text-[#0D2D54]" />
   </div>
 )
 
