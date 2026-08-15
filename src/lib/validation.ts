@@ -24,14 +24,15 @@ export const validateAuthForm = (formData: Record<string, string>, isSignIn: boo
     errors.email = 'Email is required'
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
     errors.email = 'Please enter a valid email address'
-  } else if (!isWorkEmail(formData.email)) {
+  } else if (!isSignIn && !isWorkEmail(formData.email)) {
+    // The backend only enforces work emails at registration.
     errors.email = 'Please enter a valid work email address (e.g. name@company.com)'
   }
 
   if (!formData.password) {
     errors.password = 'Password is required'
-  } else if (formData.password.length < 6) {
-    errors.password = 'Password must be at least 6 characters'
+  } else if (!isSignIn && formData.password.length < 8) {
+    errors.password = 'Password must be at least 8 characters'
   }
 
   if (!isSignIn) {
