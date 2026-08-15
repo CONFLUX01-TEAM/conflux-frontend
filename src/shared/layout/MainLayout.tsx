@@ -1,17 +1,18 @@
 import { Outlet } from 'react-router-dom'
-import Footer from '@/shared/layout/Footer'
-import Navbar from '@/shared/layout/Navbar'
+import Sidebar from '@/shared/layout/Sidebar'
+import Header from '@/shared/layout/Header'
 
 const MainLayout = () => {
   return (
-    <div className="min-h-screen min-h-dvh bg-white text-black flex flex-col font-sans overflow-x-hidden">
-      <Navbar />
+    <div className="flex h-screen w-screen overflow-hidden bg-white font-sans text-black">
+      <Sidebar />
 
-      <main className="flex-grow container mx-auto w-full min-w-0 px-4 py-6 sm:px-6">
-        <Outlet />
-      </main>
-
-      <Footer />
+      <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
+        <Header />
+        <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }
