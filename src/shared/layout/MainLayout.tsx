@@ -9,7 +9,7 @@ const MainLayout = () => {
 
       <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
         <Header />
-        <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+        <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6 bg-[#FAFAFA]">
           <Outlet />
         </main>
       </div>
