@@ -3,6 +3,7 @@ import type { ApiError } from '@/services/api-client'
 import {
   completeEmployerOnboarding,
   getEmployerOnboardingStatus,
+  googleSignIn,
   login,
   signOut,
   uploadCompanyLogo,
@@ -81,6 +82,41 @@ describe('api-client', () => {
     expect(expiredSpy).toHaveBeenCalledOnce()
     expect(localStorage.getItem('access_token')).toBeNull()
     window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, expiredSpy)
+  })
+
+  it('exchanges a Google ID token without a Bearer header', async () => {
+    localStorage.setItem('access_token', 'stale-token')
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(200, { statusCode: 200, message: 'ok', data: { accessToken: 'a' } }),
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await googleSignIn('google-id-token')
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toMatch(/\/auth\/google$/)
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body as string)).toEqual({ idToken: 'google-id-token' })
+    expect((init.headers as Record<string, string>).Authorization).toBeUndefined()
+  })
+
+  it('includes jobId for talent sign-in from a job link', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(200, { statusCode: 200, message: 'ok', data: { userType: 'TALENT' } }),
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await googleSignIn('google-id-token', 'open-job-uuid')
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(JSON.parse(init.body as string)).toEqual({
+      idToken: 'google-id-token',
+      jobId: 'open-job-uuid',
+    })
   })
 
   it('turns network failures into a human-friendly message', async () => {
