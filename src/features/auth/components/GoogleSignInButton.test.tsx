@@ -42,10 +42,10 @@ vi.mock('@/lib/google-identity', () => ({
     }),
 }))
 
-const renderButton = () =>
+const renderButton = (jobId?: string) =>
   render(
     <MemoryRouter>
-      <GoogleSignInButton />
+      <GoogleSignInButton jobId={jobId} />
     </MemoryRouter>,
   )
 
@@ -76,6 +76,21 @@ describe('GoogleSignInButton', () => {
     expect(googleSignInMock).toHaveBeenCalledWith('google-id-token', undefined)
     expect(setSessionMock).toHaveBeenCalledWith(
       expect.objectContaining({ accessToken: 'access-1', refreshToken: 'refresh-1' }),
+    )
+  })
+
+  it('forwards jobId when signing in from a job link', async () => {
+    googleSignInMock.mockResolvedValue({
+      statusCode: 200,
+      message: 'Logged in successfully',
+      data: { accessToken: 'access-1', refreshToken: 'refresh-1', userType: 'TALENT' },
+    })
+
+    renderButton('open-job-uuid')
+    await fireCredential('google-id-token')
+
+    await waitFor(() =>
+      expect(googleSignInMock).toHaveBeenCalledWith('google-id-token', 'open-job-uuid'),
     )
   })
 

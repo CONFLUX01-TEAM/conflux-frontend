@@ -42,7 +42,10 @@ const fallbackMessage = (status: number): string => {
 }
 
 const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
-  const token = getToken()
+  // Public auth routes (login, register, Google ID-token exchange, OTP, …)
+  // must not send a leftover Bearer token — a stale session would confuse
+  // the backend. `/auth/signout` is the exception and still authenticates.
+  const token = isPublicAuthPath(path) ? null : getToken()
 
   // FormData sets its own multipart `Content-Type` (with the boundary) — leave
   // it to the browser; only JSON bodies get the explicit header.
