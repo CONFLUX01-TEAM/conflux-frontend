@@ -86,9 +86,7 @@ describe('App routing', () => {
 
     renderAt('/dashboard')
 
-    expect(
-      await screen.findByRole('heading', { name: /welcome, ada lovelace/i }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /recent candidates/i })).toBeInTheDocument()
   })
 
   it('routes a not-yet-onboarded employer to the onboarding form', async () => {
@@ -107,9 +105,7 @@ describe('App routing', () => {
 
     renderAt('/signin')
 
-    expect(
-      await screen.findByRole('heading', { name: /welcome, ada lovelace/i }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /recent candidates/i })).toBeInTheDocument()
     expect(
       screen.queryByRole('heading', { name: /welcome to conflux hiring/i }),
     ).not.toBeInTheDocument()
