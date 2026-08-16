@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { getToken } from '@/services/auth.service'
+import NotificationsModal from './NotificationsModal'
+import type { NotificationItem } from './NotificationsModal'
 
 interface User {
   name: string
@@ -12,80 +14,112 @@ const getUser = (): User | null => {
   return token ? { name: 'User', email: 'user@example.com' } : null
 }
 
-interface HeaderButton {
-  id: string
-  ariaLabel: string
-  iconSrc: string
-  hasBadge: boolean
-  onClick: () => void
-}
-
-const HEADER_BUTTONS: HeaderButton[] = [
-  {
-    id: 'notifications',
-    ariaLabel: 'Notifications',
-    iconSrc: '/notification-icon.svg',
-    hasBadge: true,
-    onClick: () => {
-      console.log('notification')
-      alert('notification')
-    },
-  },
-  {
-    id: 'help',
-    ariaLabel: 'Help',
-    iconSrc: '/help-icon.svg',
-    hasBadge: false,
-    onClick: () => {
-      console.log('help me')
-      alert('help me')
-    },
-  },
-]
-
 const Header = () => {
-  const [searchQuery, setSearchQuery] = useState('')
   const user = getUser()
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+
+  const [notifications, setNotifications] = useState<NotificationItem[]>([
+    {
+      id: '1',
+      title: 'New job posted',
+      description: 'Product designer',
+      time: '10:30 AM',
+      color: '#0A3D74',
+      isRead: false,
+    },
+    {
+      id: '2',
+      title: 'Interview scheduled',
+      description: 'Sefa Mamu',
+      time: '10:30 AM',
+      color: '#CA8C26',
+      isRead: false,
+    },
+    {
+      id: '3',
+      title: 'Assessment completed',
+      description: 'by 10 candidates',
+      time: '10:30 AM',
+      color: '#7265BE',
+      isRead: false,
+    },
+    {
+      id: '4',
+      title: 'Tunde Asorona',
+      description: 'moved to hired',
+      time: '10:30 AM',
+      color: '#629F61',
+      isRead: false,
+    },
+    {
+      id: '5',
+      title: 'New candidate added',
+      description: 'Emeka Agu',
+      time: '10:30 AM',
+      color: '#1F755A',
+      isRead: false,
+    },
+  ])
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map((n) => ({ ...n, isRead: true })))
+  }
+
+  const markAsRead = (id: string) => {
+    setNotifications(notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n)))
+  }
 
   return (
     <header className="flex w-full items-center justify-end border-b border-[#DDDDDD] bg-[#FFFFFF] px-4 sm:px-10 py-3 sm:py-5">
-      <div className="flex w-full max-w-[47.1875rem] items-center justify-between gap-4 lg:gap-[4.6875rem]">
-        {/* Search Bar */}
-        <div className="flex flex-1 max-w-[31.25rem] items-center gap-2.5 rounded-[0.625rem] bg-[#F5F5F5] px-4 sm:px-[2.6875rem] py-2 sm:py-4.5">
-          <img src="/search-icon.svg" alt="search-icon" className="size-5.5 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full border-none bg-transparent font-inter font-light text-base tracking-[0.05em] text-[#222222] placeholder:text-[#5F5F5F] leading-none outline-none focus:ring-0"
+      <div className="flex items-center gap-5">
+        {/* Notifications Button */}
+        <div className="relative">
+          <button
+            id="notification-button"
+            type="button"
+            aria-label="Notifications"
+            onClick={() => setIsNotificationOpen((prev) => !prev)}
+            className="relative z-[9999] flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center rounded-full border-[0.6px] border-[#DFDFDF] bg-white text-[#222222] transition-colors hover:bg-gray-50 cursor-pointer"
+          >
+            <div className="relative">
+              <img src="/notification-icon.svg" alt="" className="shrink-0" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 py-2 px-1.75 -right-1 flex size-4 items-center justify-center rounded-full bg-[#EF4444] text-[#FFFFFF] text-[10px] font-inter font-medium leading-[100%]">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+          </button>
+
+          {/* Notifications Modal */}
+          <NotificationsModal
+            isOpen={isNotificationOpen}
+            onClose={() => setIsNotificationOpen(false)}
+            notifications={notifications}
+            onMarkAsRead={markAsRead}
+            onMarkAllAsRead={markAllAsRead}
           />
         </div>
 
-        <div className="flex items-center gap-5 shrink-0">
-          {HEADER_BUTTONS.map((btn) => (
-            <button
-              key={btn.id}
-              type="button"
-              aria-label={btn.ariaLabel}
-              onClick={btn.onClick}
-              className="relative flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center rounded-full border-[0.6px] border-[#DFDFDF] bg-white text-[#222222] transition-colors hover:bg-gray-50 cursor-pointer"
-            >
-              <img src={btn.iconSrc} alt="" className="shrink-0" />
-              {btn.hasBadge && (
-                <span className="absolute top-3.5 right-[1.0625rem] h-3 w-3 rounded-full border border-white bg-[#062DF6]" />
-              )}
-            </button>
-          ))}
+        {/* Help Button */}
+        <button
+          type="button"
+          aria-label="Help"
+          onClick={() => alert('help me')}
+          className="relative flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center rounded-full border-[0.6px] border-[#DFDFDF] bg-white text-[#222222] transition-colors hover:bg-gray-50 cursor-pointer"
+        >
+          <img src="/help-icon.svg" alt="" className="shrink-0" />
+        </button>
 
-          {/* User Profile Avatar */}
-          <div className="h-[3.75rem] w-[3.75rem] shrink-0 overflow-hidden rounded-full bg-[#D9D9D9]">
-            <img
-              src={user?.profileImage || '/avatar.png'}
-              alt={user?.name || 'User Profile'}
-              className="h-full w-full object-cover"
-            />
-          </div>
+        {/* User Profile Avatar */}
+        <div className="h-[3.75rem] w-[3.75rem] shrink-0 overflow-hidden rounded-full bg-[#D9D9D9]">
+          <img
+            src={user?.profileImage || '/avatar.png'}
+            alt={user?.name || 'User Profile'}
+            className="h-full w-full object-cover"
+          />
         </div>
       </div>
     </header>
