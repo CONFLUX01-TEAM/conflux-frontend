@@ -9,8 +9,7 @@ import { useCountdown } from '@/features/auth/hooks/useCountdown'
 import { validateOTP } from '@/lib/validation'
 import { isApiError, requestPasswordReset, resetPassword } from '@/services/api-client'
 import Button from '@/shared/ui/Button'
-import InputField from '@/shared/ui/InputField'
-import Spinner from '@/shared/ui/Spinner'
+import PasswordInput from '@/shared/ui/PasswordInput'
 
 const ResetPasswordForm = () => {
   const navigate = useNavigate()
@@ -21,8 +20,6 @@ const ResetPasswordForm = () => {
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''))
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [notice, setNotice] = useState(routeState.notice ?? '')
   const [submitting, setSubmitting] = useState(false)
@@ -110,19 +107,10 @@ const ResetPasswordForm = () => {
             </span>
           )}
 
-          <InputField
+          <PasswordInput
             label="New Password"
-            type={showPassword ? 'text' : 'password'}
             name="password"
             placeholder="******"
-            icon={
-              <img
-                src={showPassword ? '/show-password.svg' : '/hide-password.svg'}
-                alt="Toggle visibility"
-                className="size-[1.25rem]"
-              />
-            }
-            onIconClick={() => setShowPassword(!showPassword)}
             value={password}
             onChange={(e) => {
               setPassword(e.target.value)
@@ -132,19 +120,10 @@ const ResetPasswordForm = () => {
             error={!!errors.password}
             errorMessage={errors.password}
           />
-          <InputField
+          <PasswordInput
             label="Confirm New Password"
-            type={showConfirmPassword ? 'text' : 'password'}
             name="confirmPassword"
             placeholder="******"
-            icon={
-              <img
-                src={showConfirmPassword ? '/show-password.svg' : '/hide-password.svg'}
-                alt="Toggle visibility"
-                className="size-[1.25rem]"
-              />
-            }
-            onIconClick={() => setShowConfirmPassword(!showConfirmPassword)}
             value={confirmPassword}
             onChange={(e) => {
               setConfirmPassword(e.target.value)
@@ -158,11 +137,7 @@ const ResetPasswordForm = () => {
           <Button
             type="submit"
             disabled={submitting}
-            icon={
-              submitting ? (
-                <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-              ) : undefined
-            }
+            isLoading={submitting}
             label={submitting ? 'Resetting password…' : 'Reset Password'}
             className={`mt-[1.5rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium ${submitting ? 'opacity-80 cursor-wait' : ''}`}
           />
