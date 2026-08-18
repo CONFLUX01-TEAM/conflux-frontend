@@ -8,7 +8,6 @@ import { useCountdown } from '@/features/auth/hooks/useCountdown'
 import { validateOTP } from '@/lib/validation'
 import { isApiError, sendVerificationOtp, validateVerificationOtp } from '@/services/api-client'
 import Button from '@/shared/ui/Button'
-import Spinner from '@/shared/ui/Spinner'
 
 /** `jane.doe@acme.com` → `j***e@acme.com` — enough to recognise, safe to display. */
 const maskEmail = (email: string): string => {
@@ -145,11 +144,7 @@ const VerifyEmailForm = () => {
               <Button
                 type="submit"
                 disabled={verifying}
-                icon={
-                  verifying ? (
-                    <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-                  ) : undefined
-                }
+                isLoading={verifying}
                 label={verifying ? 'Verifying…' : 'Verify Email'}
                 className={`bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] w-full max-w-[26.63rem] font-inter text-base font-medium ${verifying ? 'opacity-80 cursor-wait' : ''}`}
               />

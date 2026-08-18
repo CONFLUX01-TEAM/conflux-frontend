@@ -5,7 +5,6 @@ import AuthPanel from '@/features/auth/components/AuthPanel'
 import { isApiError, requestPasswordReset } from '@/services/api-client'
 import Button from '@/shared/ui/Button'
 import InputField from '@/shared/ui/InputField'
-import Spinner from '@/shared/ui/Spinner'
 
 const ForgotPasswordForm = () => {
   const navigate = useNavigate()
@@ -74,11 +73,7 @@ const ForgotPasswordForm = () => {
           <Button
             type="submit"
             disabled={submitting}
-            icon={
-              submitting ? (
-                <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-              ) : undefined
-            }
+            isLoading={submitting}
             label={submitting ? 'Sending reset code…' : 'Send Reset Code'}
             className={`mt-[1.5rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium ${submitting ? 'opacity-80 cursor-wait' : ''}`}
           />
