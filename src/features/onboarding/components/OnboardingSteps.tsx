@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '@/features/auth/context/auth-context'
@@ -14,7 +14,7 @@ import {
 import { completeEmployerOnboarding, isApiError, uploadCompanyLogo } from '@/services/api-client'
 import Button from '@/shared/ui/Button'
 import InputField from '@/shared/ui/InputField'
-import Spinner from '@/shared/ui/Spinner'
+import TextareaField from '@/shared/ui/TextareaField'
 
 const LOGO_URL_KEYS = ['logoUrl', 'url', 'secureUrl', 'logo'] as const
 
@@ -31,7 +31,6 @@ const OnboardingSteps = () => {
   const { step, setStep } = useOutletContext<OnboardingOutletContext>()
   const navigate = useNavigate()
   const { markOnboardingComplete } = useAuth()
-  const textareaId = useId()
 
   const [companyName, setCompanyName] = useState('')
   const [location, setLocation] = useState('')
@@ -379,42 +378,20 @@ const OnboardingSteps = () => {
               <p className="text-[#6C6C6C] text-[1.13rem] mb-[3.13rem] font-inter">
                 Keep it short, a sentence or two is enough. You can always edit this later.
               </p>
-              <div>
-                <label htmlFor={textareaId} className="sr-only">
-                  Company description
-                </label>
-                <textarea
-                  id={textareaId}
-                  placeholder="we help growing businesses manage their hiring process for technical roles"
-                  value={description}
-                  onChange={(e) => {
-                    setDescription(e.target.value)
-                    if (stepError) setStepError(null)
-                  }}
-                  maxLength={1000}
-                  className={`w-full py-[1rem] px-[1.2rem] border rounded-[0.5rem] outline-none resize-none h-[9rem] font-sans text-[0.88rem] text-black placeholder:text-[#9D9D9D] transition-colors ${
-                    stepError
-                      ? 'border-[#EF4444] focus:ring-2 focus:ring-[#EF4444]/20'
-                      : 'border-[#E6E6E6] focus:border-[#0D2D54]'
-                  }`}
-                  autoFocus
-                />
-                <div className="flex justify-between items-center mt-1">
-                  {stepError ? (
-                    <span
-                      className="text-red-500 text-[0.8rem] font-medium font-inter"
-                      role="alert"
-                    >
-                      {stepError}
-                    </span>
-                  ) : (
-                    <span />
-                  )}
-                  <span className="text-[0.75rem] text-[#9D9D9D] font-inter">
-                    {description.length}/1000
-                  </span>
-                </div>
-              </div>
+              <TextareaField
+                id="company-description"
+                aria-label="Company description"
+                placeholder="we help growing businesses manage their hiring process for technical roles"
+                value={description}
+                onChange={(e) => {
+                  setDescription(e.target.value)
+                  if (stepError) setStepError(null)
+                }}
+                maxLength={1000}
+                error={Boolean(stepError)}
+                errorMessage={stepError || undefined}
+                autoFocus
+              />
             </div>
           )}
 
@@ -432,11 +409,7 @@ const OnboardingSteps = () => {
               type="submit"
               label={step === 5 ? (isLoading ? 'Finishing…' : 'Finish') : 'Continue'}
               disabled={isLoading}
-              icon={
-                isLoading ? (
-                  <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-                ) : undefined
-              }
+              isLoading={isLoading}
               className={`px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] transition-all cursor-pointer ${
                 isCurrentStepValid
                   ? 'bg-[#0D2D54] text-white hover:bg-[#0D2D54]/90 shadow-sm'

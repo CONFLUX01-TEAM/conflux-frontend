@@ -7,8 +7,7 @@ const App = () => (
     <AppRouter />
     {/* App-wide, on-brand toast host for transient feedback styled with the brand navy #0D2D54 */}
     <Toaster
-      position="top-center"
-      closeButton
+      position="top-right"
       toastOptions={{
         className: 'font-inter',
         style: {
@@ -22,7 +21,6 @@ const App = () => (
           description: '!text-white/80',
           actionButton: '!bg-white !text-[#0D2D54] font-medium hover:!bg-white/90',
           cancelButton: '!bg-white/10 !text-white hover:!bg-white/20',
-          closeButton: '!bg-[#0D2D54] !text-white !border-white/20 hover:!bg-[#153a66]',
         },
       }}
     />

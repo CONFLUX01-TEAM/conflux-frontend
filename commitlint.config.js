@@ -9,7 +9,19 @@ export default {
     'type-enum': [
       2,
       'always',
-      ['feat', 'fix', 'chore', 'docs', 'style', 'refactor', 'perf', 'test', 'ci', 'build', 'revert'],
+      [
+        'feat',
+        'fix',
+        'chore',
+        'docs',
+        'style',
+        'refactor',
+        'perf',
+        'test',
+        'ci',
+        'build',
+        'revert',
+      ],
     ],
   },
 }

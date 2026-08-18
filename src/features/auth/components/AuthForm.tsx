@@ -10,7 +10,7 @@ import { isApiError, login, register } from '@/services/api-client'
 import { setSession } from '@/services/auth.service'
 import Button from '@/shared/ui/Button'
 import InputField from '@/shared/ui/InputField'
-import Spinner from '@/shared/ui/Spinner'
+import PasswordInput from '@/shared/ui/PasswordInput'
 
 const GENERIC_ERROR = 'Something went wrong. Please try again.'
 
@@ -23,8 +23,6 @@ const AuthForm = ({ authState }: AuthFormProps) => {
   const jobId = searchParams.get('jobId') ?? undefined
   const routeState = (location.state ?? {}) as AuthRouteState
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const [formData, setFormData] = useState({
@@ -174,19 +172,10 @@ const AuthForm = ({ authState }: AuthFormProps) => {
               error={!!errors.email}
               errorMessage={errors.email}
             />
-            <InputField
+            <PasswordInput
               label="Password"
-              type={showPassword ? 'text' : 'password'}
               name="password"
               placeholder="******"
-              icon={
-                <img
-                  src={showPassword ? '/show-password.svg' : '/hide-password.svg'}
-                  alt="Toggle visibility"
-                  className="size-[1.25rem]"
-                />
-              }
-              onIconClick={() => setShowPassword(!showPassword)}
               value={formData.password}
               onChange={handleChange}
               disabled={submitting}
@@ -204,19 +193,10 @@ const AuthForm = ({ authState }: AuthFormProps) => {
               </div>
             )}
             {!isSignIn && (
-              <InputField
+              <PasswordInput
                 label="Confirm Password"
-                type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
                 placeholder="******"
-                icon={
-                  <img
-                    src={showConfirmPassword ? '/show-password.svg' : '/hide-password.svg'}
-                    alt="Toggle visibility"
-                    className="size-[1.25rem]"
-                  />
-                }
-                onIconClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 disabled={submitting}
@@ -227,11 +207,7 @@ const AuthForm = ({ authState }: AuthFormProps) => {
             <Button
               type="submit"
               disabled={submitting}
-              icon={
-                submitting ? (
-                  <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-                ) : undefined
-              }
+              isLoading={submitting}
               label={
                 submitting
                   ? isSignIn
