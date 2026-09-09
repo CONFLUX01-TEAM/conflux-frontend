@@ -1,9 +1,10 @@
 import type { ButtonProps } from '@/shared/types/ui'
 
 const Button = ({ children, label, icon, className = '', disabled, ...props }: ButtonProps) => {
+  const hasWidth = /\bw-\w+/.test(className)
   return (
     <button
-      className={`w-full inline-flex items-center justify-center gap-2 transition-all duration-200 ${className}`}
+      className={`${hasWidth ? '' : 'w-full'} inline-flex items-center justify-center gap-2 transition-all duration-200 ${className}`}
       disabled={disabled}
       {...props}
     >
