@@ -8,6 +8,8 @@ export interface AuthRouteState {
   from?: string
   /** Email being verified or reset (verify-email / reset-password pages). */
   email?: string
+  /** Reset code passed to the new password step. */
+  otp?: string
   /** verify-email only: request a fresh OTP on arrival. */
   needsOtp?: boolean
 }
