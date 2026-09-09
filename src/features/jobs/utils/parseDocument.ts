@@ -1,15 +1,16 @@
-import * as pdfjsLib from 'pdfjs-dist'
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url'
-import mammoth from 'mammoth'
-
-// Configure PDF.js worker using Vite's explicit ?url loader with CDN fallback
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  pdfWorker || `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
-
 /**
  * Extracts raw text from a PDF file using pdfjs-dist.
  */
 async function parsePdf(file: File): Promise<string> {
+  const [pdfjsLib, pdfWorker] = await Promise.all([
+    import('pdfjs-dist'),
+    import('pdfjs-dist/build/pdf.worker.mjs?url'),
+  ])
+
+  // Configure PDF.js worker using Vite's explicit ?url loader with CDN fallback
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    pdfWorker.default || `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
+
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
   const pageTexts: string[] = []
@@ -59,6 +60,7 @@ async function parsePdf(file: File): Promise<string> {
  * Extracts raw text from a DOCX file using mammoth.
  */
 async function parseDocx(file: File): Promise<string> {
+  const mammoth = (await import('mammoth')).default
   const arrayBuffer = await file.arrayBuffer()
   const result = await mammoth.extractRawText({ arrayBuffer })
   return result.value
