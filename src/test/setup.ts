@@ -25,3 +25,23 @@ if (
     f = 0
   }
 }
+
+// Polyfill Iterator for PDF.js in Node < 22 / JSDOM environment
+class PolyfillIterator {
+  static from<T>(iterable: Iterable<T> | Iterator<T>) {
+    if (iterable && typeof (iterable as Iterable<T>)[Symbol.iterator] === 'function') {
+      return (iterable as Iterable<T>)[Symbol.iterator]()
+    }
+    return iterable
+  }
+}
+
+if (
+  typeof globalThis !== 'undefined' &&
+  !(globalThis as unknown as { Iterator?: unknown }).Iterator
+) {
+  ;(globalThis as unknown as { Iterator: unknown }).Iterator = PolyfillIterator
+}
+if (typeof window !== 'undefined' && !(window as unknown as { Iterator?: unknown }).Iterator) {
+  ;(window as unknown as { Iterator: unknown }).Iterator = PolyfillIterator
+}
