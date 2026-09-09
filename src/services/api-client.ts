@@ -41,7 +41,7 @@ const fallbackMessage = (status: number): string => {
   return `Request failed (${status})`
 }
 
-const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
+export const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
   // Public auth routes (login, register, Google ID-token exchange, OTP, …)
   // must not send a leftover Bearer token — a stale session would confuse
   // the backend. `/auth/signout` is the exception and still authenticates.

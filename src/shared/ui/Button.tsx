@@ -18,7 +18,7 @@ const Button = ({
 
   return (
     <button
-      className={`w-full inline-flex items-center justify-center gap-2 transition-all duration-200 ${className}`}
+      className={`w-full inline-flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer ${className}`}
       disabled={disabled || isLoading}
       aria-busy={isLoading || undefined}
       {...props}

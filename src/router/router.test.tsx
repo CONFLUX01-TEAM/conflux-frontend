@@ -65,20 +65,20 @@ describe('App routing', () => {
     expect(screen.getByRole('heading', { name: /welcome to conflux hiring/i })).toBeInTheDocument()
   })
 
-  it('blocks the dashboard for signed-out visitors and asks them to sign in', () => {
+  it('blocks the dashboard for signed-out visitors and asks them to sign in', async () => {
     renderAt('/dashboard')
 
     expect(screen.getByRole('heading', { name: /welcome to conflux hiring/i })).toBeInTheDocument()
-    expect(screen.getByText(/please sign in to continue/i)).toBeInTheDocument()
+    expect(await screen.findByText(/please login to continue/i)).toBeInTheDocument()
   })
 
-  it('sends visitors with an expired token to sign in with a session-expired notice', () => {
+  it('sends visitors with an expired token to sign in with a session-expired notice', async () => {
     storeSession(Math.floor(Date.now() / 1000) - 60)
 
     renderAt('/dashboard')
 
     expect(screen.getByRole('heading', { name: /welcome to conflux hiring/i })).toBeInTheDocument()
-    expect(screen.getByText(/session has expired/i)).toBeInTheDocument()
+    expect(await screen.findByText(/session has expired/i)).toBeInTheDocument()
   })
 
   it('lets an onboarded user reach the dashboard', async () => {
@@ -86,7 +86,9 @@ describe('App routing', () => {
 
     renderAt('/dashboard')
 
-    expect(await screen.findByRole('heading', { name: /recent candidates/i })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: /no roles created yet/i }),
+    ).toBeInTheDocument()
   })
 
   it('routes a not-yet-onboarded employer to the onboarding form', async () => {
@@ -105,7 +107,9 @@ describe('App routing', () => {
 
     renderAt('/signin')
 
-    expect(await screen.findByRole('heading', { name: /recent candidates/i })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: /no roles created yet/i }),
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole('heading', { name: /welcome to conflux hiring/i }),
     ).not.toBeInTheDocument()

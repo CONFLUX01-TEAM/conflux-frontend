@@ -17,6 +17,7 @@ export interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   errorMessage?: string
   icon?: ReactNode
   onIconClick?: () => void
+  wrapperClassName?: string
 }
 
 export type PasswordInputProps = Omit<InputFieldProps, 'type' | 'icon' | 'onIconClick'>

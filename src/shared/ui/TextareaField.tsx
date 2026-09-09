@@ -22,8 +22,11 @@ const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={textareaId} className="block text-sm sm:text-base text-black mb-2">
-            {label}
+          <label
+            htmlFor={textareaId}
+            className="block text-sm font-semibold text-black mb-2 font-sans"
+          >
+            {label} {props.required && <span className="text-[#EF4444]">*</span>}
           </label>
         )}
         <textarea

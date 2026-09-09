@@ -4,7 +4,10 @@ import type { UseGoogleSignInOptions } from '@/features/auth/types'
 import { useGoogleSignIn } from '@/features/auth/hooks/useGoogleSignIn'
 import Spinner from '@/shared/ui/Spinner'
 
-type GoogleSignInButtonProps = UseGoogleSignInOptions
+interface GoogleSignInButtonProps extends UseGoogleSignInOptions {
+  disabled?: boolean
+  onSubmittingChange?: (submitting: boolean) => void
+}
 
 // Stable id so repeated errors (and StrictMode's double-mount) replace a single
 // toast instead of stacking duplicates.
@@ -15,11 +18,20 @@ const ERROR_TOAST_ID = 'google-signin-error'
  * Google's real (transparent, overlaid) button for the supported popup flow.
  * Handles SDK loading, the in-flight token exchange, and error/retry states.
  */
-const GoogleSignInButton = ({ jobId, context = 'signin' }: GoogleSignInButtonProps) => {
-  const { sdkStatus, submitting, isBusy, error, canRetry, overlayRef, retry } = useGoogleSignIn({
+const GoogleSignInButton = ({
+  jobId,
+  context = 'signin',
+  disabled = false,
+  onSubmittingChange,
+}: GoogleSignInButtonProps) => {
+  const { sdkStatus, submitting, error, canRetry, overlayRef, retry } = useGoogleSignIn({
     jobId,
     context,
   })
+
+  useEffect(() => {
+    onSubmittingChange?.(submitting)
+  }, [submitting, onSubmittingChange])
 
   // Surface failures as a toast. A retryable SDK-load error stays open with a
   // "Try again" action; other errors auto-dismiss.
@@ -35,25 +47,21 @@ const GoogleSignInButton = ({ jobId, context = 'signin' }: GoogleSignInButtonPro
     })
   }, [error, canRetry, retry])
 
-  const showOverlay = sdkStatus === 'ready' && !submitting
+  const showOverlay = sdkStatus === 'ready' && !submitting && !disabled
 
-  const label = submitting
-    ? 'Signing you in…'
-    : sdkStatus === 'loading'
-      ? 'Loading Google…'
-      : 'Continue with google'
+  const label = submitting ? 'Logging you in…' : 'Continue with google'
 
   return (
     <div className="mb-[1.25rem]">
       <div className="relative">
-        {/* Presentational button — the real Google button is overlaid on top. */}
+        {/* Presentational button the real Google button is overlaid on top. */}
         <div
           aria-hidden={showOverlay}
           className={`pointer-events-none flex w-full select-none items-center justify-center gap-2 rounded-[0.5rem] border-[0.06rem] border-[#E6E6E6] bg-white py-[0.91em] font-inter text-base font-medium text-[#0D2D54] transition-opacity duration-200 ${
-            isBusy ? 'opacity-70' : ''
+            disabled ? 'opacity-50 cursor-not-allowed' : submitting ? 'opacity-70' : ''
           }`}
         >
-          {isBusy ? (
+          {submitting ? (
             <Spinner className="text-[#0D2D54]" wrapperClassName="bg-transparent" />
           ) : (
             <img src="/google-icon.svg" alt="" aria-hidden className="size-[1.25rem]" />

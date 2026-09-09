@@ -144,7 +144,7 @@ export const useGoogleSignIn = ({
     }
 
     applyScale()
-    // The GIS iframe settles its size asynchronously — recompute when it does.
+    // The GIS iframe settles its size asynchronously recompute when it does.
     buttonObserverRef.current?.disconnect()
     if (typeof ResizeObserver !== 'undefined') {
       const observer = new ResizeObserver(applyScale)
@@ -182,7 +182,7 @@ export const useGoogleSignIn = ({
   )
 
   const retry = useCallback(() => {
-    // A missing client ID cannot be fixed by retrying — keep the error visible.
+    // A missing client ID cannot be fixed by retrying keep the error visible.
     if (!GOOGLE_CLIENT_ID) return
     setError(null)
     setSdkStatus('loading')
