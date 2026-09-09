@@ -105,16 +105,19 @@ const Sidebar = () => {
         </button>
       </div>
 
-      <nav className={`flex flex-1 flex-col justify-between pt-4 lg:pt-6 overflow-y-auto min-h-0 ${collapsed ? 'pl-0' : 'pl-3 lg:pl-5'}`}>
+      <nav
+        className={`flex flex-1 flex-col justify-between pt-4 lg:pt-6 overflow-y-auto min-h-0 ${collapsed ? 'pl-0' : 'pl-3 lg:pl-5'}`}
+      >
         <div className="flex flex-col gap-3">
           <p
-            className={`mb-2 px-3 lg:px-[1.3125rem] font-inter font-medium tracking-[0.05em] text-[#B5B5B5] ${collapsed ? 'text-center text-base normal-case px-0' : 'text-base'
-              }`}
+            className={`mb-2 px-3 lg:px-[1.3125rem] font-inter font-medium tracking-[0.05em] text-[#B5B5B5] ${
+              collapsed ? 'text-center text-base normal-case px-0' : 'text-base'
+            }`}
           >
             {!collapsed ? 'General' : '•'}
           </p>
 
-          <div className='flex flex-col gap-3 lg:gap-6'>
+          <div className="flex flex-col gap-3 lg:gap-6">
             {generalNav.map((item) => (
               <NavLink
                 key={item.to}
@@ -134,17 +137,20 @@ const Sidebar = () => {
           </div>
         </div>
 
-        <div className={`mt-4 border-t border-[#CECECE] mb-3 lg:mb-[0.9375rem] ${collapsed ? 'mx-3 lg:mx-4' : 'ml-3 mr-4 lg:ml-4 lg:mr-9'}`} />
+        <div
+          className={`mt-4 border-t border-[#CECECE] mb-3 lg:mb-[0.9375rem] ${collapsed ? 'mx-3 lg:mx-4' : 'ml-3 mr-4 lg:ml-4 lg:mr-9'}`}
+        />
 
         <div className="flex flex-col gap-3">
           <p
-            className={`px-3 lg:px-[1.3125rem] font-medium tracking-[0.05em] text-[#B5B5B5] ${collapsed ? 'text-center text-base ml-0' : 'text-base'
-              }`}
+            className={`px-3 lg:px-[1.3125rem] font-medium tracking-[0.05em] text-[#B5B5B5] ${
+              collapsed ? 'text-center text-base ml-0' : 'text-base'
+            }`}
           >
             {!collapsed ? 'Others' : '•'}
           </p>
 
-          <div className='flex flex-col gap-3 lg:gap-6'>
+          <div className="flex flex-col gap-3 lg:gap-6">
             {othersNav.map((item) => (
               <NavLink
                 key={item.to}

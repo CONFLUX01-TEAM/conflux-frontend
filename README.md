@@ -1,17 +1,17 @@
-# AI Recruitment Platform — Frontend Architecture
+# AI Recruitment Platform Frontend Architecture
 
-> **Version:** 1.0 — MVP + Phase 2 Ready
-> **Scope:** Frontend only — React / TypeScript / Vite
+> **Version:** 1.0 MVP + Phase 2 Ready
+> **Scope:** Frontend only React / TypeScript / Vite
 > **Audience:** Frontend engineers, tech leads, architects
 > **Status:** Approved for implementation
 
-**Want to contribute?** This README describes the long-term architecture. For setup, folder layout, scripts, commit conventions, and what to build next, use **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** — that is the guide for day-to-day work on this codebase.
+**Want to contribute?** This README describes the long-term architecture. For setup, folder layout, scripts, commit conventions, and what to build next, use **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** that is the guide for day-to-day work on this codebase.
 
 ---
 
 ## Purpose
 
-This document defines the scalable frontend architecture for the AI Recruitment Platform. It covers layer responsibilities, technology choices, file organisation, state management strategy, performance patterns, and the decision rationale behind each — with Phase 2 feature additions accounted for from the start.
+This document defines the scalable frontend architecture for the AI Recruitment Platform. It covers layer responsibilities, technology choices, file organisation, state management strategy, performance patterns, and the decision rationale behind each with Phase 2 feature additions accounted for from the start.
 
 **Contributors:** start with [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) before your first PR. It explains the current repo structure, quality gates, and the backlog items the team is expected to pick up.
 
@@ -19,11 +19,11 @@ This document defines the scalable frontend architecture for the AI Recruitment 
 
 ## Core Principles
 
-- **Pages are thin orchestrators** — they fetch data and compose layouts; all logic lives in features or services.
-- **Features own their domain** — each domain folder is self-contained with its own components, hooks, and types.
-- **Shared means 2+ features use it** — nothing enters `shared/` because it might be reused; only because it already is.
-- **Services are the only door to the API** — no `fetch()` or `axios` calls outside the `services/` layer.
-- **Grow by addition, not refactoring** — Phase 2 modules slot in without touching existing code.
+- **Pages are thin orchestrators** they fetch data and compose layouts; all logic lives in features or services.
+- **Features own their domain** each domain folder is self-contained with its own components, hooks, and types.
+- **Shared means 2+ features use it** nothing enters `shared/` because it might be reused; only because it already is.
+- **Services are the only door to the API** no `fetch()` or `axios` calls outside the `services/` layer.
+- **Grow by addition, not refactoring** Phase 2 modules slot in without touching existing code.
 
 ---
 
@@ -46,7 +46,7 @@ This document defines the scalable frontend architecture for the AI Recruitment 
 
 ## Architecture Layers
 
-Dependencies flow **downward only** — upper layers import from lower ones; lower layers never import from upper ones.
+Dependencies flow **downward only** upper layers import from lower ones; lower layers never import from upper ones.
 
 | Layer              | Technology / Pattern | Key Responsibilities                                               |
 | ------------------ | -------------------- | ------------------------------------------------------------------ |
@@ -55,8 +55,8 @@ Dependencies flow **downward only** — upper layers import from lower ones; low
 | 3. Pages           | One file per route   | Compose layout + feature components; minimal logic                 |
 | 4. Feature modules | `features/<domain>/` | All domain logic: components, hooks, local state, types            |
 | 5. Shared UI       | `shared/ui/`         | Reusable primitives used across 2+ features                        |
-| 6. State — server  | TanStack Query       | API data, caching, optimistic updates, background sync             |
-| 6. State — client  | Zustand              | Auth session, exam state, notification queue, UI prefs             |
+| 6. State server    | TanStack Query       | API data, caching, optimistic updates, background sync             |
+| 6. State client    | Zustand              | Auth session, exam state, notification queue, UI prefs             |
 | 7. Services        | `services/`          | All API calls; one file per domain; apiClient as shared base       |
 | 8. Cross-cutting   | `lib/` + `hooks/`    | Formatters, validators, feature flags, analytics, logger           |
 | 9. Performance     | Build + runtime      | Code splitting, lazy images, virtual scroll, prefetching           |
@@ -70,12 +70,12 @@ Dependencies flow **downward only** — upper layers import from lower ones; low
 ```
 src/
   app.tsx                  # Root provider tree, Suspense, ErrorBoundary
-  main.tsx                 # Vite entry — mounts app
+  main.tsx                 # Vite entry mounts app
   router/                  # Route definitions and guards
-  pages/                   # One file per route — thin orchestrators
+  pages/                   # One file per route thin orchestrators
   features/                # Domain feature modules
   shared/                  # Components used across 2+ features
-  services/                # All HTTP calls — no fetch() elsewhere
+  services/                # All HTTP calls no fetch() elsewhere
   store/                   # Zustand client state stores
   hooks/                   # Shared hooks (2+ features)
   lib/                     # Formatters, validators, constants, flags
@@ -84,7 +84,7 @@ src/
 
 ### Feature module structure
 
-Every feature is a self-contained directory. The `index.ts` barrel defines the public API — nothing outside imports from internal paths.
+Every feature is a self-contained directory. The `index.ts` barrel defines the public API nothing outside imports from internal paths.
 
 ```
 features/
@@ -192,7 +192,7 @@ services/
 
 ```
 store/
-  authStore.ts          # User identity, token, permissions — persisted
+  authStore.ts          # User identity, token, permissions persisted
   examSessionStore.ts   # Current question index, answers, timer state
   notificationStore.ts  # Toast queue
   uiPrefsStore.ts       # Sidebar collapse, table density, theme pref
@@ -205,7 +205,7 @@ lib/
   formatters.ts     # Date, score, currency, duration formatting
   validators.ts     # Form validation schemas (Zod)
   constants.ts      # API base URL, score thresholds, limits
-  featureFlags.ts   # Flag evaluation — gates Phase 2 features
+  featureFlags.ts   # Flag evaluation gates Phase 2 features
   analytics.ts      # Event tracking wrapper
   logger.ts         # Structured logging (dev: console, prod: Sentry)
 ```
@@ -214,20 +214,20 @@ lib/
 
 ## State Management Strategy
 
-### Server state — TanStack Query
+### Server state TanStack Query
 
 - Every piece of API data is owned by TanStack Query, not Zustand.
 - Queries are co-located in feature hooks: `useRolesQuery` in `features/pipeline/`, `useScoresQuery` in `features/scoring/`.
-- Stale-while-revalidate keeps the employer dashboard snappy — cached data renders instantly while a background refetch runs.
+- Stale-while-revalidate keeps the employer dashboard snappy cached data renders instantly while a background refetch runs.
 - Optimistic updates for status changes: the Kanban card moves immediately on drag; the mutation confirms or rolls back silently.
 - Retry logic with exponential backoff is configured globally on the `QueryClient`.
 
-### Client state — Zustand
+### Client state Zustand
 
-- **`authStore`** — JWT token, user ID, role, permissions. Persisted to `localStorage`. Cleared on logout.
-- **`examSessionStore`** — current question index, all answers (buffered for auto-save), timer elapsed, submission status. Never persisted.
-- **`notificationStore`** — a queue of toast messages drained by a single `Notification` component at the root.
-- **`uiPrefsStore`** — sidebar state, table density preference. Persisted to `localStorage`.
+- **`authStore`** JWT token, user ID, role, permissions. Persisted to `localStorage`. Cleared on logout.
+- **`examSessionStore`** current question index, all answers (buffered for auto-save), timer elapsed, submission status. Never persisted.
+- **`notificationStore`** a queue of toast messages drained by a single `Notification` component at the root.
+- **`uiPrefsStore`** sidebar state, table density preference. Persisted to `localStorage`.
 
 ### Decision rule
 
@@ -239,15 +239,15 @@ lib/
 
 ## Routing & Route Guards
 
-| Route Group                     | Routes                                                                 |
-| ------------------------------- | ---------------------------------------------------------------------- |
-| Public — no auth                | `/assessment/:token` · Candidate exam and results                      |
-| Auth — pre-auth only            | `/login` · `/register` · `/reset-password`                             |
-| Employer — auth + employer role | `/dashboard` · `/roles` · `/roles/:id/assessment` · `/results/:roleId` |
-| Future: Admin                   | `/admin/*` — guarded by admin role flag                                |
-| Future: Candidate prep          | `/prep/*` — guarded by feature flag                                    |
+| Route Group                   | Routes                                                                 |
+| ----------------------------- | ---------------------------------------------------------------------- |
+| Public no auth                | `/assessment/:token` · Candidate exam and results                      |
+| Auth pre-auth only            | `/login` · `/register` · `/reset-password`                             |
+| Employer auth + employer role | `/dashboard` · `/roles` · `/roles/:id/assessment` · `/results/:roleId` |
+| Future: Admin                 | `/admin/*` guarded by admin role flag                                  |
+| Future: Candidate prep        | `/prep/*` guarded by feature flag                                      |
 
-Route guards live in `router/guards.tsx`. All page components are lazy-loaded via `React.lazy()` — a candidate accessing `/assessment/:token` never downloads the employer dashboard bundle.
+Route guards live in `router/guards.tsx`. All page components are lazy-loaded via `React.lazy()` a candidate accessing `/assessment/:token` never downloads the employer dashboard bundle.
 
 ---
 
@@ -255,38 +255,38 @@ Route guards live in `router/guards.tsx`. All page components are lazy-loaded vi
 
 ### Load time
 
-- Route-level code splitting — every page is a separate chunk.
-- Prefetch on hover — score detail query prefetches silently when hovering a candidate card.
-- Skeleton UIs render immediately on every data-fetching page — perceived load is zero.
+- Route-level code splitting every page is a separate chunk.
+- Prefetch on hover score detail query prefetches silently when hovering a candidate card.
+- Skeleton UIs render immediately on every data-fetching page perceived load is zero.
 - Critical CSS inlined by Vite; fonts loaded with `font-display: swap`.
 
 ### Runtime performance
 
-- Virtual scrolling via TanStack Virtual on the candidate results list — 1,000 rows render in <5ms.
+- Virtual scrolling via TanStack Virtual on the candidate results list 1,000 rows render in <5ms.
 - Memoisation with `React.memo` and `useMemo` applied at the feature level where profiling shows re-render cost.
-- The exam timer runs in a Zustand store updated by `requestAnimationFrame` — no re-renders during countdown.
+- The exam timer runs in a Zustand store updated by `requestAnimationFrame` no re-renders during countdown.
 - Auto-save debounced to 3 seconds with fire-and-forget mutations and local optimistic state.
 
 ### Resilience
 
-- `ErrorBoundary` wraps each route segment — one broken feature cannot crash the app.
+- `ErrorBoundary` wraps each route segment one broken feature cannot crash the app.
 - Exam answers are written to `localStorage` on every auto-save and flushed to the API on reconnect.
-- Service worker (Workbox) caches static assets — the app shell loads offline.
+- Service worker (Workbox) caches static assets the app shell loads offline.
 
 ---
 
-## Phase 2 Scaling — Growth by Addition
+## Phase 2 Scaling Growth by Addition
 
 | Phase 2 Feature         | Where it lives                     | Integration approach                                              |
 | ----------------------- | ---------------------------------- | ----------------------------------------------------------------- |
-| Candidate prep platform | `features/prep-platform/`          | Gated by `featureFlags.ts` — no existing code changes             |
+| Candidate prep platform | `features/prep-platform/`          | Gated by `featureFlags.ts` no existing code changes               |
 | Video interviews        | `features/video-interviews/`       | New route group + feature module; WebRTC service in `services/`   |
 | ATS integrations        | `services/atsSvc.ts`               | New service file; employer settings page extended                 |
 | Admin / white-label     | `pages/admin/` + admin route guard | New route group; theme tokens in CSS custom properties            |
 | CV analysis             | `features/cv-analysis/`            | New feature module; hooks into `scoring/` via shared types        |
 | Adaptive assessments    | Extension of `assessment-gen/`     | Feature module extended; API contract changes isolated to service |
 
-Feature flags in `lib/featureFlags.ts` allow shipping Phase 2 code behind flags before it is publicly visible — no long-lived feature branches.
+Feature flags in `lib/featureFlags.ts` allow shipping Phase 2 code behind flags before it is publicly visible no long-lived feature branches.
 
 ---
 
@@ -294,39 +294,39 @@ Feature flags in `lib/featureFlags.ts` allow shipping Phase 2 code behind flags 
 
 | Layer             | Tooling                  | Coverage focus                                              |
 | ----------------- | ------------------------ | ----------------------------------------------------------- |
-| Unit tests        | Vitest + Testing Library | Co-located in `features/` — hooks, formatters, validators   |
+| Unit tests        | Vitest + Testing Library | Co-located in `features/` hooks, formatters, validators     |
 | Integration tests | Vitest + MSW             | Feature components against mocked API responses             |
 | E2E tests         | Playwright               | Assessment submission · scoring · shortlisting · auth flows |
-| Visual regression | Playwright screenshots   | Shared UI components — catch layout regressions             |
+| Visual regression | Playwright screenshots   | Shared UI components catch layout regressions               |
 
-Tests live next to the code they test (e.g. `QuestionEditor.test.tsx` beside `QuestionEditor.tsx`). Shared test utilities live in a top-level `test/` folder. The services layer is always mocked in tests — no real API calls in CI.
+Tests live next to the code they test (e.g. `QuestionEditor.test.tsx` beside `QuestionEditor.tsx`). Shared test utilities live in a top-level `test/` folder. The services layer is always mocked in tests no real API calls in CI.
 
 ---
 
 ## Dependency Rules (Import Boundaries)
 
-Enforced by ESLint (`eslint-plugin-import-alias`) in CI — a PR that violates a boundary fails the lint check before code review.
+Enforced by ESLint (`eslint-plugin-import-alias`) in CI a PR that violates a boundary fails the lint check before code review.
 
-| Module       | Allowed imports                                                        |
-| ------------ | ---------------------------------------------------------------------- |
-| `pages/`     | `features/*` (via `index.ts` only), `shared/ui/`, `store/`, `router/`  |
-| `features/*` | `shared/ui/`, `services/`, `store/`, `lib/`, `hooks/`, `types/`        |
-| `shared/ui/` | `lib/`, `types/` only — never from `features/` or `pages/`             |
-| `services/`  | `lib/`, `types/` only — never from `features/`, `shared/`, or `store/` |
-| `store/`     | `lib/`, `types/` only                                                  |
-| `lib/`       | `types/` only — no other `src/` folders                                |
-| `pages/`     | Cannot be imported by anything — pages are leaf nodes                  |
+| Module       | Allowed imports                                                       |
+| ------------ | --------------------------------------------------------------------- |
+| `pages/`     | `features/*` (via `index.ts` only), `shared/ui/`, `store/`, `router/` |
+| `features/*` | `shared/ui/`, `services/`, `store/`, `lib/`, `hooks/`, `types/`       |
+| `shared/ui/` | `lib/`, `types/` only never from `features/` or `pages/`              |
+| `services/`  | `lib/`, `types/` only never from `features/`, `shared/`, or `store/`  |
+| `store/`     | `lib/`, `types/` only                                                 |
+| `lib/`       | `types/` only no other `src/` folders                                 |
+| `pages/`     | Cannot be imported by anything pages are leaf nodes                   |
 
 ---
 
-## Appendix — Decision Log
+## Appendix Decision Log
 
 | Decision                                       | Rationale                                                                                            |
 | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | TanStack Query over Redux Toolkit Query        | Simpler API, better devtools, stale-while-revalidate built in, no boilerplate actions/reducers       |
 | Zustand over Context API                       | No provider wrapping, no re-render propagation, built-in devtools, immer middleware                  |
 | Vite over CRA / webpack                        | 10–100x faster HMR, native ESM, simpler config, better DX                                            |
-| Feature-first folder structure over type-first | Feature owns all its code — easier to delete, test, and reason about                                 |
+| Feature-first folder structure over type-first | Feature owns all its code easier to delete, test, and reason about                                   |
 | Services layer enforced                        | Changing the API base URL, adding auth headers, or mocking for tests is a single-file change         |
 | Virtual scrolling from day one                 | 1,000 candidates is a realistic v1 load; retrofitting virtual scroll is harder than starting with it |
 
