@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import AuthNotice from '@/features/auth/components/AuthNotice'
 import OtpInput, { OTP_LENGTH } from '@/features/auth/components/OtpInput'
 import type { AuthRouteState } from '@/features/auth/types'
 import { useCountdown } from '@/features/auth/hooks/useCountdown'
@@ -24,12 +23,17 @@ const VerifyEmailForm = () => {
   const email = routeState.email ?? new URLSearchParams(location.search).get('email') ?? ''
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''))
-  const [notice, setNotice] = useState(routeState.notice ?? '')
   const [verifying, setVerifying] = useState(false)
   const [resending, setResending] = useState(false)
   const { secondsLeft, isActive, resetCountdown } = useCountdown(60)
   // StrictMode mounts effects twice in dev — only auto-send the OTP once.
   const autoSentRef = useRef(false)
+
+  useEffect(() => {
+    if (routeState.notice) {
+      toast.success(routeState.notice, { id: 'auth-route-notice' })
+    }
+  }, [routeState.notice])
 
   // Users can land here from a sign-in attempt on an unverified account, in
   // which case no code has been emailed yet — request one automatically.
@@ -49,7 +53,7 @@ const VerifyEmailForm = () => {
   const handleAlreadyVerified = () => {
     navigate('/signin', {
       replace: true,
-      state: { notice: 'Your email is already verified. Sign in to continue.' },
+      state: { notice: 'Your email is already verified. Login to continue.' },
     })
   }
 
@@ -65,7 +69,6 @@ const VerifyEmailForm = () => {
     }
 
     setVerifying(true)
-    setNotice('')
     try {
       await validateVerificationOtp(email, otpValue)
       navigate('/signin', {
@@ -89,11 +92,10 @@ const VerifyEmailForm = () => {
   const handleResend = async () => {
     if (resending) return
     setResending(true)
-    setNotice('')
     try {
       await sendVerificationOtp(email)
       setOtp(Array(OTP_LENGTH).fill(''))
-      setNotice(`A new code is on its way to ${maskEmail(email)}.`)
+      toast.success(`A new code is on its way to ${maskEmail(email)}.`)
       resetCountdown()
     } catch (err) {
       const message =
@@ -118,7 +120,7 @@ const VerifyEmailForm = () => {
             <img
               src="/auth-img.svg"
               alt="Conflux Hiring illustration"
-              className="h-full w-full object-contain"
+              className="h-full w-full object-cover"
             />
           </div>
         </div>
@@ -132,11 +134,10 @@ const VerifyEmailForm = () => {
               A verification code has been sent to {maskEmail(email)}
             </p>
 
-            <div className="w-full max-w-[26.63rem] mb-8 sm:mb-[3.5rem]">
-              {notice && <AuthNotice kind="success">{notice}</AuthNotice>}
-            </div>
-
-            <form onSubmit={handleSubmit} className="w-full flex flex-col items-center min-w-0">
+            <form
+              onSubmit={handleSubmit}
+              className="w-full flex flex-col items-center min-w-0 mt-8 sm:mt-10"
+            >
               <div className="w-full mb-8 sm:mb-12">
                 <OtpInput value={otp} onChange={setOtp} disabled={verifying} />
               </div>

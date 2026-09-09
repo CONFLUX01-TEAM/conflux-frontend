@@ -167,7 +167,7 @@ describe('OnboardingSteps', () => {
     const textarea = screen.getByPlaceholderText(/we help growing businesses/i)
 
     await user.type(textarea, 'Short')
-    const finishBtn = screen.getByRole('button', { name: /finish/i })
+    const finishBtn = screen.getByRole('button', { name: /proceed|finish/i })
     await user.click(finishBtn)
 
     expect(screen.getByText('Description must be at least 10 characters.')).toBeInTheDocument()

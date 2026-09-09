@@ -21,8 +21,8 @@ export const RequireAuth = () => {
 
   if (!isAuthenticated) {
     const notice = isSessionExpired()
-      ? 'Your session has expired. Please sign in again.'
-      : 'Please sign in to continue.'
+      ? 'Your session has expired. Please Login again.'
+      : 'Please Login to continue.'
     return (
       <Navigate
         to="/signin"

@@ -144,7 +144,7 @@ const OnboardingSteps = () => {
       navigate('/dashboard', { replace: true })
     } catch (err) {
       const apiErr = isApiError(err) ? err : null
-      // Onboarding was already finished (e.g. in another tab) — treat as success.
+      // Onboarding was already finished (e.g. in another tab) treat as success.
       if (apiErr?.status === 409) {
         markOnboardingComplete()
         navigate('/dashboard', { replace: true })
@@ -387,7 +387,7 @@ const OnboardingSteps = () => {
                   setDescription(e.target.value)
                   if (stepError) setStepError(null)
                 }}
-                maxLength={1000}
+                maxLength={500}
                 error={Boolean(stepError)}
                 errorMessage={stepError || undefined}
                 autoFocus
@@ -407,7 +407,7 @@ const OnboardingSteps = () => {
             )}
             <Button
               type="submit"
-              label={step === 5 ? (isLoading ? 'Finishing…' : 'Finish') : 'Continue'}
+              label={step === 5 ? (isLoading ? 'Processing…' : 'proceed') : 'Continue'}
               disabled={isLoading}
               isLoading={isLoading}
               className={`px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] transition-all cursor-pointer ${

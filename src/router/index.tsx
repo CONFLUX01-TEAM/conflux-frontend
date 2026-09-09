@@ -4,12 +4,14 @@ import ResetPasswordPage from '@/pages/auth/ResetPasswordPage'
 import SignInPage from '@/pages/auth/SignInPage'
 import SignUpPage from '@/pages/auth/SignUpPage'
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage'
+import VerifyResetCodePage from '@/pages/auth/VerifyResetCodePage'
 import AssessmentPage from '@/pages/assessment/AssessmentPage'
 import CandidatesPage from '@/pages/candidates/CandidatesPage'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
 import InterviewsPage from '@/pages/interviews/InterviewsPage'
 import OnboardingPage from '@/pages/onboarding/OnboardingPage'
 import JobsPage from '@/pages/jobs/JobsPage'
+import CreateRolePage from '@/pages/jobs/CreateRolePage'
 import SettingsPage from '@/pages/settings/SettingsPage'
 import { GuestOnly, RequireAuth, RequireOnboarded, RequireOnboarding } from '@/router/guards'
 import AuthLayout from '@/shared/layout/AuthLayout'
@@ -28,6 +30,7 @@ export const AppRouter = () => {
         </Route>
         <Route path="verify-email" element={<VerifyEmailPage />} />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="verify-reset-code" element={<VerifyResetCodePage />} />
         <Route path="reset-password" element={<ResetPasswordPage />} />
       </Route>
 
@@ -45,6 +48,8 @@ export const AppRouter = () => {
             <Route path="interviews" element={<InterviewsPage />} />
             <Route path="candidates" element={<CandidatesPage />} />
             <Route path="jobs" element={<JobsPage />} />
+            <Route path="jobs/create" element={<CreateRolePage />} />
+            <Route path="roles/create" element={<CreateRolePage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Route>
