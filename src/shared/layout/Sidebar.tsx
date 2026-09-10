@@ -53,11 +53,42 @@ const othersNav: NavItem[] = [
   },
 ]
 
-const Sidebar = () => {
-  const [collapsed, setCollapsed] = useState(false)
+export interface SidebarProps {
+  collapsed?: boolean
+  onToggle?: () => void
+  onCloseMobile?: () => void
+}
+
+const Sidebar = ({ collapsed: externalCollapsed, onToggle, onCloseMobile }: SidebarProps = {}) => {
+  const [internalCollapsed, setInternalCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024
+    }
+    return false
+  })
+
+  const isControlled = externalCollapsed !== undefined
+  const collapsed = isControlled ? externalCollapsed : internalCollapsed
   const navigate = useNavigate()
 
+  const handleToggle = () => {
+    if (onToggle) {
+      onToggle()
+    } else {
+      setInternalCollapsed((prev) => !prev)
+    }
+  }
+
+  const handleClose = () => {
+    if (onCloseMobile) {
+      onCloseMobile()
+    } else {
+      setInternalCollapsed(true)
+    }
+  }
+
   const handleLogout = () => {
+    handleClose()
     clearToken()
     navigate('/signin', { replace: true })
   }
@@ -72,8 +103,11 @@ const Sidebar = () => {
   return (
     <aside
       className={[
-        'flex h-screen shrink-0 flex-col border-r border-[#CECECE] bg-[#FFFFFF] transition-[width] duration-200',
-        collapsed ? 'w-[4.5rem]' : 'w-64',
+        'fixed inset-y-0 left-0 z-[100] flex h-screen flex-col border-r border-[#CECECE] bg-[#FFFFFF] transition-all duration-300',
+        collapsed
+          ? '-translate-x-full lg:translate-x-0 lg:w-[4.5rem]'
+          : 'translate-x-0 w-64 shadow-2xl lg:shadow-none',
+        'lg:static lg:z-auto lg:shrink-0',
       ].join(' ')}
     >
       <div
@@ -83,7 +117,7 @@ const Sidebar = () => {
         ].join(' ')}
       >
         {!collapsed && (
-          <Link to="/dashboard">
+          <Link to="/dashboard" onClick={handleClose}>
             <img
               src="/company-logo-blue.svg"
               alt="Conflux"
@@ -93,9 +127,9 @@ const Sidebar = () => {
         )}
         <button
           type="button"
-          onClick={() => setCollapsed((prev) => !prev)}
+          onClick={handleToggle}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="transition-opacity hover:opacity-80"
+          className="transition-opacity hover:opacity-80 cursor-pointer"
         >
           <img
             src="/dashboard/collapse-icon.svg"
@@ -106,6 +140,7 @@ const Sidebar = () => {
       </div>
 
       <nav
+        onClick={handleClose}
         className={`flex flex-1 flex-col justify-between pt-4 lg:pt-6 overflow-y-auto min-h-0 ${collapsed ? 'pl-0' : 'pl-3 lg:pl-5'}`}
       >
         <div className="flex flex-col gap-3">

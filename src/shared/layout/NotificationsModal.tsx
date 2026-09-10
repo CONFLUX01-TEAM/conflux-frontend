@@ -33,15 +33,17 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
       triggerId="notification-button"
       showCloseButton
       closeButtonPosition="outside"
-      className="absolute right-0 mt-2.5 w-[34rem] bg-[#FFFFFF] rounded-[12px] shadow-2xl"
+      className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2.5 sm:w-[34rem] bg-[#FFFFFF] rounded-[12px] shadow-2xl overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-2.5 px-10 py-6 border-b border-[#E6E6E6] leading-[100%]">
-        <span className="text-[20px] font-sans font-medium text-[#000000]">Notification</span>
+      <div className="flex items-center justify-between gap-2.5 px-4 sm:px-10 py-4 sm:py-6 border-b border-[#E6E6E6] leading-[100%]">
+        <span className="text-lg sm:text-[20px] font-sans font-medium text-[#000000]">
+          Notification
+        </span>
         <button
           type="button"
           onClick={onMarkAllAsRead}
-          className="text-[0.9375rem] font-sans font-medium text-[#062DF6] hover:text-[#003bbb] transition-colors cursor-pointer"
+          className="text-xs sm:text-[0.9375rem] font-sans font-medium text-[#062DF6] hover:text-[#003bbb] transition-colors cursor-pointer"
         >
           Mark all as read
         </button>
@@ -49,7 +51,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
 
       {/* List */}
       <div
-        className="max-h-[22.5rem] flex flex-col overflow-y-auto gap-6 px-6 py-4"
+        className="max-h-[50vh] sm:max-h-[22.5rem] flex flex-col overflow-y-auto gap-4 sm:gap-6 px-4 sm:px-6 py-3 sm:py-4"
         style={{ scrollbarWidth: 'thin' }}
       >
         {notifications.length === 0 ? (
@@ -62,28 +64,30 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
               key={item.id}
               type="button"
               onClick={() => onMarkAsRead(item.id)}
-              className="w-full flex items-center justify-between pb-4 cursor-pointer transition-colors text-left border-b-[0.5px] border-[#E6E6E6] last:border-b-0"
+              className="w-full flex items-center justify-between pb-3 sm:pb-4 cursor-pointer transition-colors text-left border-b-[0.5px] border-[#E6E6E6] last:border-b-0"
             >
-              <div className="flex items-center gap-3.25">
+              <div className="flex items-center gap-2.5 sm:gap-3.25 min-w-0">
                 <div
-                  className="w-[4px] h-10 rounded-full shrink-0"
+                  className="w-[4px] h-9 sm:h-10 rounded-full shrink-0"
                   style={{ backgroundColor: item.color }}
                 />
-                <div className="flex flex-col gap-1.75">
-                  <h5 className="text-[1rem] font-sans font-medium text-[#000000] leading-[100%]">
+                <div className="flex flex-col gap-1 sm:gap-1.75 min-w-0">
+                  <h5 className="text-sm sm:text-[1rem] font-sans font-medium text-[#000000] leading-tight truncate">
                     {item.title}
                   </h5>
-                  <p className="text-[15px] font-sans font-normal text-[#848484] leading-[100%]">
+                  <p className="text-xs sm:text-[15px] font-sans font-normal text-[#848484] leading-tight truncate">
                     {item.description}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 shrink-0 ml-4">
-                <span className="text-[14px] font-sans text-[#848484] font-normal leading-[100%]">
+              <div className="flex items-center gap-2 sm:gap-4 shrink-0 ml-2 sm:ml-4">
+                <span className="text-xs sm:text-[14px] font-sans text-[#848484] font-normal leading-[100%]">
                   {item.time}
                 </span>
-                {!item.isRead && <span className="size-2.5 rounded-full bg-[#062DF6] shrink-0" />}
+                {!item.isRead && (
+                  <span className="size-2 sm:size-2.5 rounded-full bg-[#062DF6] shrink-0" />
+                )}
               </div>
             </button>
           ))
@@ -91,11 +95,11 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="flex justify-center items-center border-t border-[#E6E6E6] gap-2.5 text-center py-5">
+      <div className="flex justify-center items-center border-t border-[#E6E6E6] gap-2.5 text-center py-4 sm:py-5">
         <button
           type="button"
           onClick={onClose}
-          className="text-[1rem] font-sans font-medium text-[#062DF6] hover:text-[#0041cc] transition-colors cursor-pointer"
+          className="text-sm sm:text-[1rem] font-sans font-medium text-[#062DF6] hover:text-[#0041cc] transition-colors cursor-pointer"
         >
           View all activities
         </button>

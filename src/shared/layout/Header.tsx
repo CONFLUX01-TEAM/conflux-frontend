@@ -14,7 +14,12 @@ const getUser = (): User | null => {
   return token ? { name: 'User', email: 'user@example.com' } : null
 }
 
-const Header = () => {
+export interface HeaderProps {
+  isSidebarCollapsed?: boolean
+  onToggleSidebar?: () => void
+}
+
+const Header = ({ isSidebarCollapsed, onToggleSidebar }: HeaderProps) => {
   const user = getUser()
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
 
@@ -72,8 +77,22 @@ const Header = () => {
   }
 
   return (
-    <header className="flex w-full items-center justify-end border-b border-[#DDDDDD] bg-[#FFFFFF] px-4 sm:px-10 py-3 sm:py-5">
-      <div className="flex items-center gap-5">
+    <header className="flex w-full items-center justify-between lg:justify-end border-b border-[#DDDDDD] bg-[#FFFFFF] px-3 sm:px-6 lg:px-10 py-2.5 sm:py-4 lg:py-5">
+      {/* Mobile Sidebar Toggle Button using collapse-icon.svg */}
+      <button
+        type="button"
+        onClick={onToggleSidebar}
+        aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        className="lg:hidden transition-opacity hover:opacity-80 cursor-pointer"
+      >
+        <img
+          src="/dashboard/collapse-icon.svg"
+          alt=""
+          className={`w-7 h-7 sm:w-8 sm:h-8 ${isSidebarCollapsed ? 'rotate-180' : ''} transition-transform duration-200 cursor-pointer`}
+        />
+      </button>
+
+      <div className="flex items-center gap-2 sm:gap-3 lg:gap-5">
         {/* Notifications Button */}
         <div className="relative">
           <button
@@ -81,12 +100,16 @@ const Header = () => {
             type="button"
             aria-label="Notifications"
             onClick={() => setIsNotificationOpen((prev) => !prev)}
-            className="relative z-[9999] flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center rounded-full border-[0.6px] border-[#DFDFDF] bg-white text-[#222222] transition-colors hover:bg-gray-50 cursor-pointer"
+            className="relative flex h-10 w-10 sm:h-12 sm:w-12 lg:h-[3.75rem] lg:w-[3.75rem] shrink-0 items-center justify-center rounded-full border-[0.6px] border-[#DFDFDF] bg-white text-[#222222] transition-colors hover:bg-gray-50 cursor-pointer"
           >
-            <div className="relative">
-              <img src="/notification-icon.svg" alt="" className="shrink-0" />
+            <div className="relative flex items-center justify-center">
+              <img
+                src="/notification-icon.svg"
+                alt=""
+                className="size-4.5 sm:size-5 lg:size-6 shrink-0"
+              />
               {unreadCount > 0 && (
-                <span className="absolute -top-1.5 py-2 px-1.75 -right-1 flex size-4 items-center justify-center rounded-full bg-[#EF4444] text-[#FFFFFF] text-[10px] font-inter font-medium leading-[100%]">
+                <span className="absolute -top-1.5 -right-1.5 flex size-3.5 sm:size-4 items-center justify-center rounded-full bg-[#EF4444] text-[#FFFFFF] text-[9px] sm:text-[10px] font-inter font-medium leading-[100%]">
                   {unreadCount}
                 </span>
               )}
@@ -108,13 +131,13 @@ const Header = () => {
           type="button"
           aria-label="Help"
           onClick={() => alert('help me')}
-          className="relative flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center rounded-full border-[0.6px] border-[#DFDFDF] bg-white text-[#222222] transition-colors hover:bg-gray-50 cursor-pointer"
+          className="relative flex h-10 w-10 sm:h-12 sm:w-12 lg:h-[3.75rem] lg:w-[3.75rem] shrink-0 items-center justify-center rounded-full border-[0.6px] border-[#DFDFDF] bg-white text-[#222222] transition-colors hover:bg-gray-50 cursor-pointer"
         >
-          <img src="/help-icon.svg" alt="" className="shrink-0" />
+          <img src="/help-icon.svg" alt="" className="size-4.5 sm:size-5 lg:size-6 shrink-0" />
         </button>
 
         {/* User Profile Avatar */}
-        <div className="h-[3.75rem] w-[3.75rem] shrink-0 overflow-hidden rounded-full bg-[#D9D9D9]">
+        <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-[3.75rem] lg:w-[3.75rem] shrink-0 overflow-hidden rounded-full bg-[#D9D9D9]">
           <img
             src={user?.profileImage || '/avatar.png'}
             alt={user?.name || 'User Profile'}
