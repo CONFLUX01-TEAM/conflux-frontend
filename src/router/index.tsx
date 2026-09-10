@@ -13,6 +13,7 @@ import OnboardingPage from '@/pages/onboarding/OnboardingPage'
 import JobsPage from '@/pages/jobs/JobsPage'
 import CreateRolePage from '@/pages/jobs/CreateRolePage'
 import SettingsPage from '@/pages/settings/SettingsPage'
+import CandidateApplicationPage from '@/pages/candidate-application'
 import { GuestOnly, RequireAuth, RequireOnboarded, RequireOnboarding } from '@/router/guards'
 import AuthLayout from '@/shared/layout/AuthLayout'
 import MainLayout from '@/shared/layout/MainLayout'
@@ -22,6 +23,7 @@ export const AppRouter = () => {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/signin" replace />} />
+      <Route path="careers/apply/:jobId" element={<CandidateApplicationPage />} />
 
       <Route element={<AuthLayout />}>
         <Route element={<GuestOnly />}>

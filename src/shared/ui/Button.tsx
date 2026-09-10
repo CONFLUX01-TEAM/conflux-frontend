@@ -16,9 +16,11 @@ const Button = ({
     icon
   )
 
+  const hasWidth = /\bw-\w+/.test(className)
+
   return (
     <button
-      className={`w-full inline-flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer ${className}`}
+      className={`${hasWidth ? '' : 'w-full'} inline-flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer ${className}`}
       disabled={disabled || isLoading}
       aria-busy={isLoading || undefined}
       {...props}
