@@ -1,5 +1,7 @@
+import { CandidatesOverview } from '@/features/candidates'
+
 const CandidatesPage = () => {
-  return <h2>Candidates</h2>
+  return <CandidatesOverview />
 }
 
 export default CandidatesPage
