@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 export interface ModalProps {
   isOpen: boolean
@@ -56,31 +57,25 @@ const Modal: React.FC<ModalProps> = ({
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('mousedown', handleClickOutside)
 
-    // Prevent background scrolling when centered modal is open
-    if (position === 'center') {
-      const originalOverflow = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      return () => {
-        document.removeEventListener('keydown', handleKeyDown)
-        document.removeEventListener('mousedown', handleClickOutside)
-        document.body.style.overflow = originalOverflow
-      }
-    }
+    // Prevent background scrolling when modal/drawer is open
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('mousedown', handleClickOutside)
+      document.body.style.overflow = originalOverflow
     }
-  }, [isOpen, onClose, position, triggerId])
+  }, [isOpen, onClose, triggerId])
 
   if (!isOpen) return null
 
   if (position === 'custom') {
-    return (
+    const customContent = (
       <>
         {/* Backdrop overlay */}
         <div
-          className={`fixed inset-0 bg-black/33 z-[9998] backdrop-blur-[1px] animate-fade-in ${overlayClassName}`}
+          className={`fixed inset-0 bg-black/40 z-[9998] backdrop-blur-[1px] animate-fade-in ${overlayClassName}`}
         />
 
         {/* Custom positioned container */}
@@ -121,10 +116,14 @@ const Modal: React.FC<ModalProps> = ({
         </div>
       </>
     )
+
+    return typeof document !== 'undefined'
+      ? createPortal(customContent, document.body)
+      : customContent
   }
 
   // Centered Dialog Modal
-  return (
+  const centeredContent = (
     <div
       className={`fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 ${overlayClassName}`}
     >
@@ -168,6 +167,10 @@ const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   )
+
+  return typeof document !== 'undefined'
+    ? createPortal(centeredContent, document.body)
+    : centeredContent
 }
 
 export default Modal
