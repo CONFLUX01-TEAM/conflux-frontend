@@ -4,8 +4,11 @@ import type {
   RolePipelineDetail,
   PipelineCandidate,
   PipelineStageDetail,
+  PipelineStageKey,
+  CandidateDetailData,
 } from '../types/candidates.types'
 import { getRolePipeline } from '../services/candidates.service'
+import { enrichCandidateDetails } from '../data/candidates.mock'
 
 export interface UseCandidatePipelineReturn {
   pipelineData: RolePipelineDetail | null
@@ -27,6 +30,13 @@ export interface UseCandidatePipelineReturn {
   advanceSelectedCandidates: () => void
   rejectSelectedCandidates: () => void
   displayStages: PipelineStageDetail[]
+  // Single Candidate Details Drawer state & actions
+  selectedCandidate: CandidateDetailData | null
+  setSelectedCandidate: React.Dispatch<React.SetStateAction<CandidateDetailData | null>>
+  selectCandidate: (candidate: PipelineCandidate, stageKey?: PipelineStageKey) => void
+  closeCandidateDrawer: () => void
+  advanceCandidate: (candidateId: string, targetStageKey?: string) => void
+  rejectCandidate: (candidateId: string) => void
 }
 
 const STAGE_TRANSITIONS: Record<string, string> = {
@@ -52,6 +62,9 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
   // Bulk Action states
   const [isBulkMode, setIsBulkMode] = useState(false)
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([])
+
+  // Single Candidate Details Drawer state
+  const [selectedCandidate, setSelectedCandidate] = useState<CandidateDetailData | null>(null)
 
   // Load pipeline data on mount or when roleId changes
   useEffect(() => {
@@ -271,6 +284,146 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
     })
   }, [pipelineData, searchQuery, filterValue, sortValue])
 
+  const selectCandidate = (candidate: PipelineCandidate, stageKey?: PipelineStageKey) => {
+    const enriched = enrichCandidateDetails(candidate, pipelineData?.title, stageKey)
+    setSelectedCandidate(enriched)
+  }
+
+  const closeCandidateDrawer = () => {
+    setSelectedCandidate(null)
+  }
+
+  const advanceCandidate = (candidateId: string, targetStageKey?: string) => {
+    if (!pipelineData) return
+
+    let movedCandidate: PipelineCandidate | null = null
+    let fromStageKey = ''
+    let toStageKey = targetStageKey || ''
+
+    for (const stage of pipelineData.stages) {
+      const found = stage.candidates.find((c) => c.id === candidateId)
+      if (found) {
+        movedCandidate = found
+        fromStageKey = stage.key
+        if (!toStageKey) {
+          toStageKey = STAGE_TRANSITIONS[fromStageKey] || 'screening'
+        }
+        break
+      }
+    }
+
+    if (!movedCandidate || !toStageKey) {
+      toast.error('Cannot advance candidate any further')
+      return
+    }
+
+    const updatedStages = pipelineData.stages.map((stage) => {
+      if (stage.key === fromStageKey) {
+        const remaining = stage.candidates.filter((c) => c.id !== candidateId)
+        return {
+          ...stage,
+          candidates: remaining,
+          count: remaining.length,
+        }
+      }
+      if (stage.key === toStageKey) {
+        const updatedCandidate: PipelineCandidate = {
+          ...movedCandidate!,
+          timeInStage: 'Just now',
+          status: 'In progress',
+        }
+        return {
+          ...stage,
+          candidates: [...stage.candidates, updatedCandidate],
+          count: stage.candidates.length + 1,
+          newTodayCount: stage.newTodayCount + 1,
+        }
+      }
+      return stage
+    })
+
+    setPipelineData({
+      ...pipelineData,
+      stages: updatedStages,
+    })
+
+    setSelectedCandidate((prev) => {
+      if (!prev || prev.id !== candidateId) return prev
+      return {
+        ...prev,
+        currentStageKey: toStageKey as PipelineStageKey,
+        timeInStage: 'Just now',
+        status: 'In progress',
+      }
+    })
+
+    const toStageLabel = pipelineData.stages.find((s) => s.key === toStageKey)?.label || toStageKey
+    toast.success(`Advanced ${movedCandidate.name} to ${toStageLabel}`)
+  }
+
+  const rejectCandidate = (candidateId: string) => {
+    if (!pipelineData) return
+
+    let targetCandidate: PipelineCandidate | null = null
+    let fromStageKey = ''
+
+    for (const stage of pipelineData.stages) {
+      const found = stage.candidates.find((c) => c.id === candidateId)
+      if (found) {
+        targetCandidate = found
+        fromStageKey = stage.key
+        break
+      }
+    }
+
+    if (!targetCandidate || fromStageKey === 'rejected') {
+      toast.info('Candidate is already in rejected')
+      return
+    }
+
+    const updatedStages = pipelineData.stages.map((stage) => {
+      if (stage.key === fromStageKey) {
+        const remaining = stage.candidates.filter((c) => c.id !== candidateId)
+        return {
+          ...stage,
+          candidates: remaining,
+          count: remaining.length,
+        }
+      }
+      if (stage.key === 'rejected') {
+        const rejectedCandidate: PipelineCandidate = {
+          ...targetCandidate!,
+          timeInStage: 'Just now',
+          status: 'No show',
+        }
+        return {
+          ...stage,
+          candidates: [...stage.candidates, rejectedCandidate],
+          count: stage.candidates.length + 1,
+          newTodayCount: stage.newTodayCount + 1,
+        }
+      }
+      return stage
+    })
+
+    setPipelineData({
+      ...pipelineData,
+      stages: updatedStages,
+    })
+
+    setSelectedCandidate((prev) => {
+      if (!prev || prev.id !== candidateId) return prev
+      return {
+        ...prev,
+        currentStageKey: 'rejected',
+        status: 'No show',
+        timeInStage: 'Just now',
+      }
+    })
+
+    toast.success(`Moved ${targetCandidate.name} to Rejected`)
+  }
+
   return {
     pipelineData,
     isLoading,
@@ -291,6 +444,12 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
     advanceSelectedCandidates,
     rejectSelectedCandidates,
     displayStages,
+    selectedCandidate,
+    setSelectedCandidate,
+    selectCandidate,
+    closeCandidateDrawer,
+    advanceCandidate,
+    rejectCandidate,
   }
 }
 

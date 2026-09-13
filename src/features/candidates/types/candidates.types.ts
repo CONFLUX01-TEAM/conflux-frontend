@@ -47,6 +47,33 @@ export interface RoleCandidateOverview {
   pipelineUrl?: string
 }
 
+// ─── Candidate Detail Drawer & Sub-view Types ────────────────────────────────
+
+export interface CandidateTimelineEvent {
+  id: string
+  title: string
+  timestamp: string
+  score?: string
+  isCurrent?: boolean
+  stageName?: string
+  durationInStage?: string
+}
+
+export interface CandidateCommunicationItem {
+  id: string
+  title: string
+  timestamp: string
+  status: 'Delivered' | 'Opened' | 'Pending'
+}
+
+export interface CandidateFileItem {
+  id: string
+  name: string
+  type: string
+  size: string
+  downloadUrl?: string
+}
+
 // ─── Role Pipeline Detail & Kanban Types ─────────────────────────────────────
 
 export type CandidateStageStatus = 'Complete' | 'Pending' | 'In progress' | 'No show'
@@ -60,7 +87,28 @@ export interface PipelineCandidate {
   timeInStage: string
   avatarUrl?: string
   email?: string
+  roleTitle?: string
+  appliedDate?: string
+  appliedTimeAgo?: string
+  phone?: string
+  location?: string
+  resumeUrl?: string
+  portfolioUrl?: string
+  skills?: string[]
+  timeline?: CandidateTimelineEvent[]
+  recruiterNotes?: {
+    text: string
+    author: string
+    timeAgo: string
+  }
+  communications?: CandidateCommunicationItem[]
+  uploadedFiles?: CandidateFileItem[]
+  linkedinUrl?: string
+  portfolioWebsiteUrl?: string
+  currentStageKey?: PipelineStageKey
 }
+
+export type CandidateDetailData = PipelineCandidate
 
 export interface PipelineStageDetail {
   key: PipelineStageKey

@@ -2,6 +2,9 @@ import type {
   RoleCandidateOverview,
   StageMetric,
   RolePipelineDetail,
+  PipelineCandidate,
+  PipelineStageKey,
+  CandidateDetailData,
 } from '../types/candidates.types'
 
 /**
@@ -124,6 +127,89 @@ export const createMockPipelineDetail = (
           atsScore: 99,
           status: 'Complete',
           timeInStage: '2d in stage',
+          email: 'aisha.rahman@email.com',
+          roleTitle: 'Senior Product Designer',
+          appliedDate: 'Jul 16, 2024',
+          appliedTimeAgo: 'Applied 2 days ago (Jul 16, 2024)',
+          phone: '+1 (415) 555-0198',
+          location: 'San Francisco, CA',
+          resumeUrl: '#',
+          portfolioUrl: '#',
+          skills: ['Product Design', 'UI/UX', 'Figma', 'User Research', 'Prototyping', '+4'],
+          timeline: [
+            {
+              id: 'tl-1',
+              title: 'Applied',
+              timestamp: 'Jul 16, 2024 • 9:32 AM',
+            },
+            {
+              id: 'tl-2',
+              title: 'Assessment Completed',
+              timestamp: 'Jul 17, 2024 • 11:20 AM',
+              score: 'Score: 92%',
+            },
+            {
+              id: 'tl-3',
+              title: 'Moved to Resume Review',
+              timestamp: 'Jul 18, 2024 • 2:15 PM',
+            },
+            {
+              id: 'tl-4',
+              title: 'Current Stage',
+              stageName: 'Resume Review',
+              durationInStage: '2 days in stage',
+              timestamp: '',
+              isCurrent: true,
+            },
+          ],
+          recruiterNotes: {
+            text: 'Strong portfolio with excellent case studies. Great problem-solving approach. Schedule for portfolio deep dive in next round.',
+            author: 'Maya Johnson',
+            timeAgo: '2 days ago by Maya Johnson',
+          },
+          communications: [
+            {
+              id: 'comm-1',
+              title: 'Screening Invitation',
+              timestamp: 'Jul 16, 2024 • 9:38 AM',
+              status: 'Delivered',
+            },
+            {
+              id: 'comm-2',
+              title: 'Assessment Invitation',
+              timestamp: 'Jul 16, 2024 • 9:38 AM',
+              status: 'Delivered',
+            },
+            {
+              id: 'comm-3',
+              title: 'Assessment Invitation',
+              timestamp: 'Jul 18, 2024 • 9:38 AM',
+              status: 'Delivered',
+            },
+          ],
+          uploadedFiles: [
+            {
+              id: 'f-1',
+              name: 'Aisha_Rahman_Resume.pdf',
+              type: 'PDF',
+              size: '245KB',
+            },
+            {
+              id: 'f-2',
+              name: 'Portfolio_Aisha_Rahman.pdf',
+              type: 'PDF',
+              size: '245KB',
+            },
+            {
+              id: 'f-3',
+              name: 'Cover letter.pdf',
+              type: 'PDF',
+              size: '245KB',
+            },
+          ],
+          linkedinUrl: 'linkedin.com/in/aisharaman',
+          portfolioWebsiteUrl: 'portfolio.aisharahman.design',
+          currentStageKey: 'applied',
         },
         {
           id: 'app-2',
@@ -302,3 +388,111 @@ export const createMockPipelineDetail = (
     },
   ],
 })
+
+/**
+ * Helper to safely construct rich candidate detail data matching the Figma designs.
+ */
+export const enrichCandidateDetails = (
+  candidate: PipelineCandidate,
+  roleTitle = 'Senior Product Designer',
+  stageKey: PipelineStageKey = 'applied',
+): CandidateDetailData => {
+  const existingDetail = candidate as CandidateDetailData
+  const safeNameSlug = candidate.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+  return {
+    ...candidate,
+    roleTitle: existingDetail.roleTitle || roleTitle,
+    appliedDate: existingDetail.appliedDate || 'Jul 16, 2024',
+    appliedTimeAgo:
+      existingDetail.appliedTimeAgo ||
+      `Applied ${candidate.timeInStage || '2 days ago'} (Jul 16, 2024)`,
+    email: candidate.email || existingDetail.email || `${safeNameSlug}@email.com`,
+    phone: existingDetail.phone || '+1 (415) 555-0198',
+    location: existingDetail.location || 'San Francisco, CA',
+    resumeUrl: existingDetail.resumeUrl || '#',
+    portfolioUrl: existingDetail.portfolioUrl || '#',
+    skills: existingDetail.skills || [
+      'Product Design',
+      'UI/UX',
+      'Figma',
+      'User Research',
+      'Prototyping',
+      '+4',
+    ],
+    timeline: existingDetail.timeline || [
+      {
+        id: 'tl-1',
+        title: 'Applied',
+        timestamp: 'Jul 16, 2024 • 9:32 AM',
+      },
+      {
+        id: 'tl-2',
+        title: 'Assessment Completed',
+        timestamp: 'Jul 17, 2024 • 11:20 AM',
+        score: `Score: ${candidate.atsScore}%`,
+      },
+      {
+        id: 'tl-3',
+        title: 'Moved to Resume Review',
+        timestamp: 'Jul 18, 2024 • 2:15 PM',
+      },
+      {
+        id: 'tl-4',
+        title: 'Current Stage',
+        stageName: 'Resume Review',
+        durationInStage: candidate.timeInStage || '2 days in stage',
+        timestamp: '',
+        isCurrent: true,
+      },
+    ],
+    recruiterNotes: existingDetail.recruiterNotes || {
+      text: 'Strong portfolio with excellent case studies. Great problem-solving approach. Schedule for portfolio deep dive in next round.',
+      author: 'Maya Johnson',
+      timeAgo: '2 days ago by Maya Johnson',
+    },
+    communications: existingDetail.communications || [
+      {
+        id: 'comm-1',
+        title: 'Screening Invitation',
+        timestamp: 'Jul 16, 2024 • 9:38 AM',
+        status: 'Delivered',
+      },
+      {
+        id: 'comm-2',
+        title: 'Assessment Invitation',
+        timestamp: 'Jul 16, 2024 • 9:38 AM',
+        status: 'Delivered',
+      },
+      {
+        id: 'comm-3',
+        title: 'Assessment Invitation',
+        timestamp: 'Jul 18, 2024 • 9:38 AM',
+        status: 'Delivered',
+      },
+    ],
+    uploadedFiles: existingDetail.uploadedFiles || [
+      {
+        id: 'f-1',
+        name: `${candidate.name.replace(/\s+/g, '_')}_Resume.pdf`,
+        type: 'PDF',
+        size: '245KB',
+      },
+      {
+        id: 'f-2',
+        name: `Portfolio_${candidate.name.replace(/\s+/g, '_')}.pdf`,
+        type: 'PDF',
+        size: '245KB',
+      },
+      {
+        id: 'f-3',
+        name: 'Cover letter.pdf',
+        type: 'PDF',
+        size: '245KB',
+      },
+    ],
+    linkedinUrl: existingDetail.linkedinUrl || `linkedin.com/in/${safeNameSlug}`,
+    portfolioWebsiteUrl: existingDetail.portfolioWebsiteUrl || `portfolio.${safeNameSlug}.design`,
+    currentStageKey: stageKey,
+  }
+}
