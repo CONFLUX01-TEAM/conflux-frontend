@@ -7,6 +7,7 @@ import VerifyEmailPage from '@/pages/auth/VerifyEmailPage'
 import VerifyResetCodePage from '@/pages/auth/VerifyResetCodePage'
 import AssessmentPage from '@/pages/assessment/AssessmentPage'
 import CandidatesPage from '@/pages/candidates/CandidatesPage'
+import CandidatePipelinePage from '@/pages/candidates/CandidatePipelinePage'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
 import InterviewsPage from '@/pages/interviews/InterviewsPage'
 import OnboardingPage from '@/pages/onboarding/OnboardingPage'
@@ -49,6 +50,7 @@ export const AppRouter = () => {
             <Route path="assessment" element={<AssessmentPage />} />
             <Route path="interviews" element={<InterviewsPage />} />
             <Route path="candidates" element={<CandidatesPage />} />
+            <Route path="candidates/:roleId" element={<CandidatePipelinePage />} />
             <Route path="jobs" element={<JobsPage />} />
             <Route path="jobs/create" element={<CreateRolePage />} />
             <Route path="roles/create" element={<CreateRolePage />} />

@@ -10,6 +10,8 @@ export type TagVariant =
   | 'missing'
   | 'required'
   | 'review'
+  | 'success'
+  | 'inactive'
 
 export interface TagProps {
   label: string
@@ -17,6 +19,7 @@ export interface TagProps {
   variant?: TagVariant
   size?: 'sm' | 'md' | 'lg'
   dot?: boolean
+  rounded?: 'full' | 'xl'
   className?: string
 }
 
@@ -26,6 +29,7 @@ export const Tag: React.FC<TagProps> = ({
   variant = 'outline',
   size = 'md',
   dot = false,
+  rounded = 'full',
   className = '',
 }) => {
   const variantStyles: Record<TagVariant, string> = {
@@ -39,6 +43,8 @@ export const Tag: React.FC<TagProps> = ({
     missing: 'bg-rose-50 text-rose-700 border-rose-200/90 font-semibold',
     required: 'bg-[#F3F4F6] text-[#4B5563] border-transparent font-medium',
     review: 'bg-blue-50 text-blue-700 border-blue-200/80 font-medium',
+    success: 'bg-[#EBF8EC] text-[#22C55E] border-transparent font-medium',
+    inactive: 'bg-slate-100 text-slate-600 border-transparent font-medium',
   }
 
   const dotStyles: Record<TagVariant, string> = {
@@ -51,6 +57,8 @@ export const Tag: React.FC<TagProps> = ({
     missing: 'bg-rose-500',
     required: 'bg-[#6B7280]',
     review: 'bg-blue-600',
+    success: 'bg-[#22C55E]',
+    inactive: 'bg-slate-400',
   }
 
   const sizeStyles = {
@@ -63,7 +71,7 @@ export const Tag: React.FC<TagProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full font-inter border select-none transition-all duration-150 ${variantStyles[variant]} ${sizeStyles} ${className}`}
+      className={`inline-flex items-center ${rounded === 'xl' ? 'rounded-xl' : 'rounded-full'} font-inter border select-none transition-all duration-150 ${variantStyles[variant]} ${sizeStyles} ${className}`}
     >
       {showDot && !onRemove && (
         <span className={`size-1.5 rounded-full shrink-0 ${dotStyles[variant]}`} />
