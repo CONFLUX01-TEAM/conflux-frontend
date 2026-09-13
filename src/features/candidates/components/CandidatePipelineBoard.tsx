@@ -5,6 +5,7 @@ import { useCandidatePipeline } from '../hooks/useCandidatePipeline'
 import PipelineHeader from './PipelineHeader'
 import PipelineToolbar from './PipelineToolbar'
 import PipelineStageColumn from './PipelineStageColumn'
+import CandidateDetailDrawer from './CandidateDetailDrawer'
 
 /**
  * CandidatePipelineBoard
@@ -32,6 +33,11 @@ export const CandidatePipelineBoard: React.FC = () => {
     advanceSelectedCandidates,
     rejectSelectedCandidates,
     displayStages,
+    selectedCandidate,
+    selectCandidate,
+    closeCandidateDrawer,
+    advanceCandidate,
+    rejectCandidate,
   } = useCandidatePipeline(roleId)
 
   if (isLoading) {
@@ -92,12 +98,22 @@ export const CandidatePipelineBoard: React.FC = () => {
           <PipelineStageColumn
             key={stage.key}
             stage={stage}
+            onCandidateClick={(candidate) => selectCandidate(candidate, stage.key)}
             isBulkMode={isBulkMode}
             selectedCandidateIds={selectedCandidateIds}
             onToggleSelectCandidate={toggleSelectCandidate}
           />
         ))}
       </div>
+
+      {/* 4. Candidate Detail Slide-Over Drawer */}
+      <CandidateDetailDrawer
+        isOpen={Boolean(selectedCandidate)}
+        onClose={closeCandidateDrawer}
+        candidate={selectedCandidate}
+        onAdvance={advanceCandidate}
+        onReject={rejectCandidate}
+      />
     </div>
   )
 }
