@@ -1,11 +1,20 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '@/features/auth/context/auth-context'
 import type { OnboardingOutletContext } from '@/features/onboarding/types'
+import {
+  ALLOWED_LOGO_MIME_TYPES,
+  validateCompanyDescription,
+  validateCompanyLogo,
+  validateCompanyName,
+  validateLinkedInUrl,
+  validateLocation,
+} from '@/lib/validation'
 import { completeEmployerOnboarding, isApiError, uploadCompanyLogo } from '@/services/api-client'
 import Button from '@/shared/ui/Button'
 import InputField from '@/shared/ui/InputField'
+import TextareaField from '@/shared/ui/TextareaField'
 
 const LOGO_URL_KEYS = ['logoUrl', 'url', 'secureUrl', 'logo'] as const
 
@@ -22,6 +31,7 @@ const OnboardingSteps = () => {
   const { step, setStep } = useOutletContext<OnboardingOutletContext>()
   const navigate = useNavigate()
   const { markOnboardingComplete } = useAuth()
+
   const [companyName, setCompanyName] = useState('')
   const [location, setLocation] = useState('')
   const [linkedin, setLinkedin] = useState('')
@@ -29,97 +39,92 @@ const OnboardingSteps = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [description, setDescription] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [showError, setShowError] = useState(false)
+  const [stepError, setStepError] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const currentStepConfig = (() => {
-    switch (step) {
-      case 1:
-        return {
-          title: 'What is your company called?',
-          subtitle: 'This is how you will appear to others on the platform.',
-          placeholder: 'e.g Conflux labs',
-          value: companyName,
-          type: 'text',
-          onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-            setCompanyName(e.target.value)
-            setShowError(false)
-          },
-          isValid: companyName.trim().length > 0,
-          errorMessage: 'Company name is required.',
-        }
-      case 2:
-        return {
-          title: 'Where are you located?',
-          subtitle: 'This helps us show relevant regional context for your account.',
-          placeholder: 'e.g Lagos, Nigeria',
-          value: location,
-          type: 'text',
-          onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-            setLocation(e.target.value)
-            setShowError(false)
-          },
-          isValid: location.trim().length > 0,
-          errorMessage: 'Location is required.',
-        }
-      case 3:
-        return {
-          title: "Link your company's Linkedin",
-          subtitle: "We'll use this to verify your company and keep your profile accurate.",
-          placeholder: 'https://linkedin.com/company/your-company',
-          value: linkedin,
-          type: 'text',
-          onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-            setLinkedin(e.target.value)
-            setShowError(false)
-          },
-          isValid:
-            /^(https?:\/\/)?(www\.)?linkedin\.com\/(company|school|showcase)\/[a-zA-Z0-9-]+(\/.*)?$/i.test(
-              linkedin.trim(),
-            ),
-          errorMessage: 'Please provide a valid LinkedIn URL.',
-        }
-      case 4:
-        return {
-          title: 'Add your company logo',
-          subtitle: 'A recognizable logo builds trust with others on the platform.',
-          type: 'file',
-          isValid: logo !== null,
-          errorMessage: 'Please upload a company logo.',
-        }
-      case 5:
-        return {
-          title: 'Describe what your company does',
-          subtitle: 'Keep it short, a sentence or two is enough. You can always edit this later.',
-          placeholder: 'we help growing businesses manage their hiring process for technical roles',
-          value: description,
-          type: 'textarea',
-          onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-            setDescription(e.target.value)
-            setShowError(false)
-          },
-          isValid: description.trim().length >= 10,
-          errorMessage: 'Description must be at least 10 characters.',
-        }
-      default:
-        return {
-          title: '',
-          subtitle: '',
-          placeholder: '',
-          value: '',
-          type: 'text',
-          onChange: () => {},
-          isValid: false,
-          errorMessage: '',
-        }
+  // Clean up object URL preview on unmount or when logo changes
+  useEffect(() => {
+    return () => {
+      if (logoPreview) {
+        URL.revokeObjectURL(logoPreview)
+      }
     }
-  })()
+  }, [logoPreview])
+
+  const validateCurrentStep = (currentStep: number): string | null => {
+    switch (currentStep) {
+      case 1:
+        return validateCompanyName(companyName)
+      case 2:
+        return validateLocation(location)
+      case 3:
+        return validateLinkedInUrl(linkedin)
+      case 4:
+        return validateCompanyLogo(logo)
+      case 5:
+        return validateCompanyDescription(description)
+      default:
+        return null
+    }
+  }
+
+  const isCurrentStepValid = validateCurrentStep(step) === null
+
+  const handleFileSelect = (file: File | null) => {
+    if (!file) return
+
+    const validationError = validateCompanyLogo(file)
+    if (validationError) {
+      setStepError(validationError)
+      return
+    }
+
+    if (logoPreview) {
+      URL.revokeObjectURL(logoPreview)
+    }
+
+    setLogo(file)
+    setLogoPreview(URL.createObjectURL(file))
+    setStepError(null)
+  }
+
+  const handleRemoveLogo = () => {
+    if (logoPreview) {
+      URL.revokeObjectURL(logoPreview)
+    }
+    setLogo(null)
+    setLogoPreview(null)
+    setStepError(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files[0])
+    }
+  }
 
   const handleFinish = async () => {
     setIsLoading(true)
     try {
-      // A logo is required to pass step 4, so it is present here — upload it
-      // first and thread the returned URL into the completion payload.
       let logoUrl: string | undefined
       if (logo) {
         const { data } = await uploadCompanyLogo(logo)
@@ -139,7 +144,7 @@ const OnboardingSteps = () => {
       navigate('/dashboard', { replace: true })
     } catch (err) {
       const apiErr = isApiError(err) ? err : null
-      // Onboarding was already finished (e.g. in another tab) — treat as success.
+      // Onboarding was already finished (e.g. in another tab) treat as success.
       if (apiErr?.status === 409) {
         markOnboardingComplete()
         navigate('/dashboard', { replace: true })
@@ -151,13 +156,16 @@ const OnboardingSteps = () => {
     }
   }
 
-  const handleContinue = () => {
+  const handleContinue = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     if (isLoading) return
-    if (!currentStepConfig.isValid) {
-      setShowError(true)
+
+    const error = validateCurrentStep(step)
+    if (error) {
+      setStepError(error)
       return
     }
-    setShowError(false)
+    setStepError(null)
 
     if (step < 5) {
       setStep(step + 1)
@@ -167,118 +175,248 @@ const OnboardingSteps = () => {
   }
 
   const handleBack = () => {
-    if (step > 1) setStep(step - 1)
+    if (step > 1) {
+      setStepError(null)
+      setStep(step - 1)
+    }
   }
 
   return (
     <div className="w-full h-full py-[4.75em] px-[2.81em] font-sans">
       <div className="mb-[6.06rem] w-full">
         <p className="text-[0.74rem] text-black opacity-60 mb-2 font-medium">Step {step}/5</p>
-        <div className="flex gap-2">
+        <div
+          className="flex gap-2"
+          role="progressbar"
+          aria-valuenow={step}
+          aria-valuemin={1}
+          aria-valuemax={5}
+        >
           {[1, 2, 3, 4, 5].map((item) => (
             <div
               key={item}
               className={`h-[0.5rem] w-[3.75rem] flex-1 rounded-[1.44rem] transition-colors duration-300 ${item <= step ? 'bg-[#0D2D54]' : 'bg-[#E6E6E6]'}`}
-            ></div>
+            />
           ))}
         </div>
       </div>
 
       <div className="w-full">
-        <h2 className="text-[1.75rem] sm:text-[1.88rem] font-semibold text-black mb-[0.5rem] font-sans">
-          {currentStepConfig.title}
-        </h2>
-        <p className="text-[#6C6C6C] text-[1.13rem] mb-[3.13rem] font-inter">
-          {currentStepConfig.subtitle}
-        </p>
-
-        {currentStepConfig.type === 'text' && (
-          <InputField
-            placeholder={currentStepConfig.placeholder}
-            value={currentStepConfig.value as string}
-            onChange={currentStepConfig.onChange}
-            className="py-[0.8rem] rounded-[0.5rem]"
-          />
-        )}
-
-        {currentStepConfig.type === 'textarea' && (
-          <textarea
-            placeholder={currentStepConfig.placeholder}
-            value={currentStepConfig.value as string}
-            onChange={currentStepConfig.onChange}
-            className="w-full py-[1rem] px-[1.2rem] border border-[#E6E6E6] rounded-[0.5rem] resize-none h-[9rem] font-sans text-[0.88rem] text-black placeholder:text-[#9D9D9D] transition-colors duration-200 ease-in-out focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#0D2D54]/20 hover:border-[#CFCFCF]"
-          />
-        )}
-
-        {currentStepConfig.type === 'file' && (
-          <div
-            className={`w-full border-2 border-dashed ${showError ? 'border-notice-error bg-notice-error-surface' : 'border-[#E6E6E6]'} rounded-[0.5rem] flex flex-col items-center justify-center py-[3.5rem] cursor-pointer hover:bg-surface-subtle transition-colors`}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              type="file"
-              className="hidden"
-              ref={fileInputRef}
-              accept="image/png, image/jpeg, image/svg+xml"
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  const file = e.target.files[0]
-                  setLogo(file)
-                  setLogoPreview(URL.createObjectURL(file))
-                  setShowError(false)
-                }
-              }}
-            />
-            {logoPreview ? (
-              <div className="flex flex-col items-center">
-                <img
-                  src={logoPreview}
-                  alt="Logo preview"
-                  className="w-16 h-16 object-contain mb-2 rounded-[0.25rem]"
-                />
-                <p className="text-[0.88rem] text-[#0D2D54] font-medium text-center px-4 truncate max-w-xs">
-                  {logo?.name}
-                </p>
-                <p className="text-[0.75rem] text-[#9D9D9D] mt-1">Click to change</p>
-              </div>
-            ) : (
-              <>
-                <img src="/file-upload.svg" alt="Upload" className="w-6 h-6 mb-3" />
-                <p className="text-[0.88rem] text-black font-medium mb-1">
-                  Click to upload or drag and drop
-                </p>
-                <p className="text-[0.75rem] text-[#9D9D9D]">PNG, JPG or SVG - max 2MB</p>
-              </>
-            )}
-          </div>
-        )}
-
-        {showError && (
-          <p className="text-notice-error text-[0.75rem] mt-2 font-inter">
-            {currentStepConfig.errorMessage}
-          </p>
-        )}
-
-        <div className={`mt-[5.5rem] flex ${step > 1 ? 'justify-between' : 'justify-end'}`}>
-          {step > 1 && (
-            <Button
-              label="Back"
-              onClick={handleBack}
-              disabled={isLoading}
-              className="px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] bg-white text-black border border-[#E6E6E6] hover:bg-surface-subtle transition-all"
-            />
+        <form onSubmit={handleContinue} noValidate>
+          {step === 1 && (
+            <div>
+              <h2 className="text-[1.75rem] sm:text-[1.88rem] font-semibold text-black mb-[0.5rem] font-sans">
+                What is your company called?
+              </h2>
+              <p className="text-[#6C6C6C] text-[1.13rem] mb-[3.13rem] font-inter">
+                This is how you will appear to others on the platform.
+              </p>
+              <InputField
+                id="company-name"
+                placeholder="e.g Conflux labs"
+                value={companyName}
+                onChange={(e) => {
+                  setCompanyName(e.target.value)
+                  if (stepError) setStepError(null)
+                }}
+                error={Boolean(stepError)}
+                errorMessage={stepError || undefined}
+                className="py-[0.8rem] rounded-[0.5rem]"
+                maxLength={100}
+                autoFocus
+              />
+            </div>
           )}
-          <Button
-            label={step === 5 ? 'Finish' : 'Continue'}
-            onClick={handleContinue}
-            loading={isLoading}
-            className={`px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] transition-all ${
-              currentStepConfig.isValid
-                ? 'bg-[#0D2D54] text-white hover:bg-[#0D2D54]/90 shadow-sm'
-                : 'bg-[#0D2D54]/40 text-white cursor-default'
-            }`}
-          />
-        </div>
+
+          {step === 2 && (
+            <div>
+              <h2 className="text-[1.75rem] sm:text-[1.88rem] font-semibold text-black mb-[0.5rem] font-sans">
+                Where are you located?
+              </h2>
+              <p className="text-[#6C6C6C] text-[1.13rem] mb-[3.13rem] font-inter">
+                This helps us show relevant regional context for your account.
+              </p>
+              <InputField
+                id="location"
+                placeholder="e.g Abuja, Nigeria"
+                value={location}
+                onChange={(e) => {
+                  setLocation(e.target.value)
+                  if (stepError) setStepError(null)
+                }}
+                error={Boolean(stepError)}
+                errorMessage={stepError || undefined}
+                className="py-[0.8rem] rounded-[0.5rem]"
+                maxLength={100}
+                autoFocus
+              />
+            </div>
+          )}
+
+          {step === 3 && (
+            <div>
+              <h2 className="text-[1.75rem] sm:text-[1.88rem] font-semibold text-black mb-[0.5rem] font-sans">
+                Link your company's Linkedin
+              </h2>
+              <p className="text-[#6C6C6C] text-[1.13rem] mb-[3.13rem] font-inter">
+                We'll use this to verify your company and keep your profile accurate.
+              </p>
+              <InputField
+                id="linkedin-url"
+                type="url"
+                placeholder="https://linkedin.com/company/your-company"
+                value={linkedin}
+                onChange={(e) => {
+                  setLinkedin(e.target.value)
+                  if (stepError) setStepError(null)
+                }}
+                error={Boolean(stepError)}
+                errorMessage={stepError || undefined}
+                className="py-[0.8rem] rounded-[0.5rem]"
+                autoFocus
+              />
+            </div>
+          )}
+
+          {step === 4 && (
+            <div>
+              <h2 className="text-[1.75rem] sm:text-[1.88rem] font-semibold text-black mb-[0.5rem] font-sans">
+                Add your company logo
+              </h2>
+              <p className="text-[#6C6C6C] text-[1.13rem] mb-[3.13rem] font-inter">
+                A recognizable logo builds trust with others on the platform.
+              </p>
+              <div
+                className={`w-full border-2 border-dashed ${
+                  stepError
+                    ? 'border-notice-error bg-notice-error-surface'
+                    : isDragging
+                      ? 'border-[#0D2D54] bg-notice-info-surface'
+                      : 'border-[#E6E6E6]'
+                } rounded-[0.5rem] flex flex-col items-center justify-center py-[3.5rem] cursor-pointer hover:bg-surface-subtle transition-colors`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    fileInputRef.current?.click()
+                  }
+                }}
+              >
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={fileInputRef}
+                  accept={ALLOWED_LOGO_MIME_TYPES.join(', ')}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleFileSelect(e.target.files[0])
+                    }
+                  }}
+                />
+                {logoPreview ? (
+                  <div className="flex flex-col items-center">
+                    <img
+                      src={logoPreview}
+                      alt="Logo preview"
+                      className="w-16 h-16 object-contain mb-2 rounded-[0.25rem] border border-[#E6E6E6] bg-white"
+                    />
+                    <p className="text-[0.88rem] text-[#0D2D54] font-medium text-center px-4 truncate max-w-xs">
+                      {logo?.name}
+                    </p>
+                    <div className="flex gap-3 mt-2">
+                      <button
+                        type="button"
+                        className="text-[0.75rem] text-[#0D2D54] hover:underline font-medium cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          fileInputRef.current?.click()
+                        }}
+                      >
+                        Change
+                      </button>
+                      <span className="text-[#E6E6E6]">|</span>
+                      <button
+                        type="button"
+                        className="text-[0.75rem] text-notice-error hover:underline font-medium cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleRemoveLogo()
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <img src="/file-upload.svg" alt="" aria-hidden className="w-6 h-6 mb-3" />
+                    <p className="text-[0.88rem] text-black font-medium mb-1">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-[0.75rem] text-[#9D9D9D]">PNG, JPG or SVG - max 2MB</p>
+                  </>
+                )}
+              </div>
+
+              {stepError && (
+                <p className="text-notice-error text-[0.75rem] mt-2 font-inter" role="alert">
+                  {stepError}
+                </p>
+              )}
+            </div>
+          )}
+
+          {step === 5 && (
+            <div>
+              <h2 className="text-[1.75rem] sm:text-[1.88rem] font-semibold text-black mb-[0.5rem] font-sans">
+                Describe what your company does
+              </h2>
+              <p className="text-[#6C6C6C] text-[1.13rem] mb-[3.13rem] font-inter">
+                Keep it short, a sentence or two is enough. You can always edit this later.
+              </p>
+              <TextareaField
+                id="company-description"
+                aria-label="Company description"
+                placeholder="we help growing businesses manage their hiring process for technical roles"
+                value={description}
+                onChange={(e) => {
+                  setDescription(e.target.value)
+                  if (stepError) setStepError(null)
+                }}
+                maxLength={500}
+                error={Boolean(stepError)}
+                errorMessage={stepError || undefined}
+                autoFocus
+              />
+            </div>
+          )}
+
+          <div className={`mt-[5.5rem] flex ${step > 1 ? 'justify-between' : 'justify-end'}`}>
+            {step > 1 && (
+              <Button
+                type="button"
+                label="Back"
+                onClick={handleBack}
+                disabled={isLoading}
+                className="px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] bg-white text-black border border-[#E6E6E6] hover:bg-surface-subtle transition-all"
+              />
+            )}
+            <Button
+              type="submit"
+              label={step === 5 ? 'proceed' : 'Continue'}
+              isLoading={isLoading}
+              className={`px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] transition-all ${
+                isCurrentStepValid
+                  ? 'bg-[#0D2D54] text-white hover:bg-[#0D2D54]/90 shadow-sm'
+                  : 'bg-[#0D2D54]/40 text-white'
+              }`}
+            />
+          </div>
+        </form>
       </div>
     </div>
   )

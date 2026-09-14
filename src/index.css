@@ -36,7 +36,7 @@
 }
 
 /* Toast theme — mirrors the notice palette above so a toast reads as the same
-   component as an inline AuthNotice, just floating. Sonner injects its own
+   component as an inline notice, just floating. Sonner injects its own
    stylesheet at runtime, so these rules out-specify it rather than rely on
    source order. */
 [data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled='true'] {

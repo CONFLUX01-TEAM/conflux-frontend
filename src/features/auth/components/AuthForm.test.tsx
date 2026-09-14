@@ -72,7 +72,7 @@ describe('AuthForm sign in', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'ada@acme.com')
     await user.type(screen.getByLabelText(/^password$/i), 'Secret123!')
-    await user.click(submitButton(/^sign in$/i))
+    await user.click(submitButton(/^login$/i))
 
     await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/onboarding', { replace: true }))
     expect(loginMock).toHaveBeenCalledWith('ada@acme.com', 'Secret123!')
@@ -86,7 +86,7 @@ describe('AuthForm sign in', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'ada@acme.com')
     await user.type(screen.getByLabelText(/^password$/i), 'wrong-pass')
-    await user.click(submitButton(/^sign in$/i))
+    await user.click(submitButton(/^login$/i))
 
     await waitFor(() =>
       expect(toastErrorMock).toHaveBeenCalledWith('Email/password combination is incorrect'),
@@ -102,7 +102,7 @@ describe('AuthForm sign in', () => {
 
     await user.type(screen.getByLabelText(/email address/i), 'ada@acme.com')
     await user.type(screen.getByLabelText(/^password$/i), 'Secret123!')
-    await user.click(submitButton(/^sign in$/i))
+    await user.click(submitButton(/^login$/i))
 
     await waitFor(() =>
       expect(navigateMock).toHaveBeenCalledWith('/verify-email', {
@@ -147,7 +147,7 @@ describe('AuthForm sign up', () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText(/this email is already registered\. try signing in instead\./i),
+        screen.getByText(/this email is already registered\. try logging in instead\./i),
       ).toBeInTheDocument(),
     )
     expect(navigateMock).not.toHaveBeenCalled()

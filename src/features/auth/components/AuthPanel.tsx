@@ -12,7 +12,7 @@ const AuthPanel = ({ children }: { children: ReactNode }) => (
           <img
             src="/auth-img.svg"
             alt="Conflux Hiring illustration"
-            className="h-full w-full object-contain"
+            className="h-full w-full object-cover"
           />
         </div>
       </div>

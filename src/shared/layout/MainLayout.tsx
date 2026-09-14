@@ -1,17 +1,42 @@
+import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import Footer from '@/shared/layout/Footer'
-import Navbar from '@/shared/layout/Navbar'
+import Sidebar from '@/shared/layout/Sidebar'
+import Header from '@/shared/layout/Header'
 
 const MainLayout = () => {
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024
+    }
+    return false
+  })
+
   return (
-    <div className="min-h-screen min-h-dvh bg-white text-black flex flex-col font-sans overflow-x-hidden">
-      <Navbar />
+    <div className="flex h-screen w-screen overflow-hidden bg-white font-sans text-black relative">
+      {/* Mobile Backdrop Overlay */}
+      {!collapsed && (
+        <div
+          className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-xs transition-opacity lg:hidden"
+          onClick={() => setCollapsed(true)}
+          aria-hidden="true"
+        />
+      )}
 
-      <main className="flex-grow container mx-auto w-full min-w-0 px-4 py-6 sm:px-6">
-        <Outlet />
-      </main>
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((prev) => !prev)}
+        onCloseMobile={() => setCollapsed(true)}
+      />
 
-      <Footer />
+      <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
+        <Header
+          isSidebarCollapsed={collapsed}
+          onToggleSidebar={() => setCollapsed((prev) => !prev)}
+        />
+        <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6 bg-[#FAFAFA]">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }

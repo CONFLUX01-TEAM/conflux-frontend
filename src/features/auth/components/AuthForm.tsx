@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import AuthNotice from '@/features/auth/components/AuthNotice'
 import GoogleSignInButton from '@/features/auth/components/GoogleSignInButton'
 import type { AuthFormProps, AuthRouteState } from '@/features/auth/types'
 import { resolvePostSignInPath } from '@/features/auth/constants'
@@ -10,6 +9,7 @@ import { isApiError, login, register } from '@/services/api-client'
 import { setSession } from '@/services/auth.service'
 import Button from '@/shared/ui/Button'
 import InputField from '@/shared/ui/InputField'
+import PasswordInput from '@/shared/ui/PasswordInput'
 
 const GENERIC_ERROR = 'Something went wrong. Please try again.'
 
@@ -22,9 +22,15 @@ const AuthForm = ({ authState }: AuthFormProps) => {
   const jobId = searchParams.get('jobId') ?? undefined
   const routeState = (location.state ?? {}) as AuthRouteState
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [googleSubmitting, setGoogleSubmitting] = useState(false)
+  const isBusy = submitting || googleSubmitting
+
+  useEffect(() => {
+    if (routeState.notice) {
+      toast.info(routeState.notice, { id: 'auth-route-notice' })
+    }
+  }, [routeState.notice])
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -72,7 +78,7 @@ const AuthForm = ({ authState }: AuthFormProps) => {
 
   const handleForm = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (submitting || !validate()) return
+    if (isBusy || !validate()) return
 
     setSubmitting(true)
     try {
@@ -86,12 +92,12 @@ const AuthForm = ({ authState }: AuthFormProps) => {
       const message = apiErr?.message || GENERIC_ERROR
 
       if (isSignIn && apiErr?.status === 401 && /verif/i.test(message)) {
-        // Account exists but the email was never verified — send a fresh code.
+        // Account exists but the email was never verified send a fresh code.
         navigate('/verify-email', {
           state: {
             email: formData.email,
             needsOtp: true,
-            notice: 'Almost there! Verify your email to finish signing in.',
+            notice: 'Almost there! Verify your email to finish logging in.',
           },
         })
         return
@@ -99,7 +105,7 @@ const AuthForm = ({ authState }: AuthFormProps) => {
       if (!isSignIn && apiErr?.status === 409) {
         setErrors((prev) => ({
           ...prev,
-          email: 'This email is already registered. Try signing in instead.',
+          email: 'This email is already registered. Try logging in instead.',
         }))
         return
       }
@@ -117,7 +123,7 @@ const AuthForm = ({ authState }: AuthFormProps) => {
             <img
               src="/auth-img.svg"
               alt="Conflux Hiring illustration"
-              className="h-full w-full object-contain"
+              className="h-full w-full object-cover"
             />
           </div>
         </div>
@@ -128,23 +134,23 @@ const AuthForm = ({ authState }: AuthFormProps) => {
               Welcome to Conflux Hiring
             </h1>
             <p className="font-inter text-base sm:text-lg md:text-[1.25rem] text-[#9D9D9D] mt-2">
-              Start your experience with signing in or signing up
+              Start your experience with logging in or signing up
             </p>
           </div>
-
-          {routeState.notice && <AuthNotice kind="info">{routeState.notice}</AuthNotice>}
 
           <div className="mt-6 sm:mt-8 mb-4 sm:mb-6 p-1.5 sm:p-2 flex justify-center gap-2 sm:gap-4 md:gap-8 2xl:gap-[5.63rem] border-[0.06rem] border-[#E6E6E6] rounded-[0.5rem]">
             <Button
               type="button"
               label="Sign Up"
               onClick={() => navigate('/signup')}
+              disabled={isBusy}
               className={`flex-1 !w-auto font-inter font-regular text-sm md:text-base py-3 px-4 sm:px-8 2xl:px-[4.03rem] rounded-[0.5rem] border-[0.06rem] border-[#E6E6E6] cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap ${!isSignIn ? 'text-black bg-[#E7EAEE]' : 'text-[#9D9D9D] hover:text-black bg-transparent'}`}
             />
             <Button
               type="button"
-              label="Sign In"
+              label="Login"
               onClick={() => navigate('/signin')}
+              disabled={isBusy}
               className={`flex-1 !w-auto font-inter font-regular text-sm md:text-base py-3 px-4 sm:px-8 2xl:px-[4.03rem] rounded-[0.5rem] border-[0.06rem] border-[#E6E6E6] cursor-pointer transition-all duration-300 ease-in-out whitespace-nowrap ${isSignIn ? 'text-black bg-[#E7EAEE]' : 'text-[#9D9D9D] hover:text-black bg-transparent'}`}
             />
           </div>
@@ -157,7 +163,7 @@ const AuthForm = ({ authState }: AuthFormProps) => {
                 placeholder="Adewale Adebisi"
                 value={formData.fullName}
                 onChange={handleChange}
-                disabled={submitting}
+                disabled={isBusy}
                 error={!!errors.fullName}
                 errorMessage={errors.fullName}
               />
@@ -169,26 +175,17 @@ const AuthForm = ({ authState }: AuthFormProps) => {
               placeholder="Adewaleadebisi@gmail.com"
               value={formData.email}
               onChange={handleChange}
-              disabled={submitting}
+              disabled={isBusy}
               error={!!errors.email}
               errorMessage={errors.email}
             />
-            <InputField
+            <PasswordInput
               label="Password"
-              type={showPassword ? 'text' : 'password'}
               name="password"
               placeholder="******"
-              icon={
-                <img
-                  src={showPassword ? '/show-password.svg' : '/hide-password.svg'}
-                  alt="Toggle visibility"
-                  className="size-[1.25rem]"
-                />
-              }
-              onIconClick={() => setShowPassword(!showPassword)}
               value={formData.password}
               onChange={handleChange}
-              disabled={submitting}
+              disabled={isBusy}
               error={!!errors.password}
               errorMessage={errors.password}
             />
@@ -203,30 +200,22 @@ const AuthForm = ({ authState }: AuthFormProps) => {
               </div>
             )}
             {!isSignIn && (
-              <InputField
+              <PasswordInput
                 label="Confirm Password"
-                type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
                 placeholder="******"
-                icon={
-                  <img
-                    src={showConfirmPassword ? '/show-password.svg' : '/hide-password.svg'}
-                    alt="Toggle visibility"
-                    className="size-[1.25rem]"
-                  />
-                }
-                onIconClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                disabled={submitting}
+                disabled={isBusy}
                 error={!!errors.confirmPassword}
                 errorMessage={errors.confirmPassword}
               />
             )}
             <Button
               type="submit"
-              loading={submitting}
-              label={isSignIn ? 'Sign In' : 'Signup'}
+              disabled={isBusy}
+              isLoading={submitting}
+              label={isSignIn ? 'Login' : 'Signup'}
               className="mt-[1.25rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium shrink-0"
             />
 
@@ -235,19 +224,30 @@ const AuthForm = ({ authState }: AuthFormProps) => {
               <span className="font-inter text-[0.75rem] text-[#9D9D9D]">or continue with</span>
               <div className="flex-1 h-[1px] bg-[#9D9D9D]"></div>
             </div>
-            <GoogleSignInButton jobId={jobId} context={isSignIn ? 'signin' : 'signup'} />
+            <GoogleSignInButton
+              jobId={jobId}
+              context={isSignIn ? 'signin' : 'signup'}
+              disabled={isBusy}
+              onSubmittingChange={setGoogleSubmitting}
+            />
 
             {isSignIn ? (
               <p className="text-center font-inter text-sm sm:text-base text-[#9D9D9D]">
                 Don't have an account?{' '}
-                <Link to="/signup" className="font-medium text-[#0D2D54]">
+                <Link
+                  to="/signup"
+                  className="font-medium text-[#0D2D54] hover:opacity-80 hover:underline transition-opacity duration-200 cursor-pointer"
+                >
                   Register
                 </Link>
               </p>
             ) : (
               <p className="text-center font-inter text-sm sm:text-base text-[#9D9D9D]">
                 Already have an account?{' '}
-                <Link to="/signin" className="font-medium text-[#0D2D54]">
+                <Link
+                  to="/signin"
+                  className="font-medium text-[#0D2D54] hover:opacity-80 hover:underline transition-opacity duration-200 cursor-pointer"
+                >
                   Login
                 </Link>
               </p>

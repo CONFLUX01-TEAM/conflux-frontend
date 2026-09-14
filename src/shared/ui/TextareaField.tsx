@@ -1,0 +1,67 @@
+import { forwardRef } from 'react'
+import type { TextareaFieldProps } from '@/shared/types/ui'
+
+const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>(
+  (
+    {
+      label,
+      id,
+      className = '',
+      error,
+      errorMessage,
+      showCharCount = true,
+      maxLength,
+      value,
+      ...props
+    },
+    ref,
+  ) => {
+    const textareaId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined)
+    const currentLength = typeof value === 'string' ? value.length : 0
+
+    return (
+      <div className="w-full">
+        {label && (
+          <label
+            htmlFor={textareaId}
+            className="block text-sm font-semibold text-black mb-2 font-sans"
+          >
+            {label} {props.required && <span className="text-[#EF4444]">*</span>}
+          </label>
+        )}
+        <textarea
+          id={textareaId}
+          ref={ref}
+          value={value}
+          maxLength={maxLength}
+          className={`w-full py-[1rem] px-[1.2rem] border rounded-[0.5rem] resize-none h-[9rem] font-sans text-[0.88rem] text-black placeholder:text-[#9D9D9D] transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:border-transparent ${
+            error || errorMessage
+              ? 'border-notice-error focus:ring-notice-error/20'
+              : 'border-[#E6E6E6] focus:ring-[#0D2D54]/20 hover:border-[#CFCFCF]'
+          } ${className}`}
+          {...props}
+        />
+        {(errorMessage || (showCharCount && maxLength)) && (
+          <div className="flex justify-between items-center mt-1 min-h-[1.25rem]">
+            {errorMessage ? (
+              <span className="text-notice-error text-[0.75rem] font-inter" role="alert">
+                {errorMessage}
+              </span>
+            ) : (
+              <span />
+            )}
+            {showCharCount && maxLength && (
+              <span className="text-[0.75rem] text-[#9D9D9D] font-inter">
+                {currentLength}/{maxLength}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  },
+)
+
+TextareaField.displayName = 'TextareaField'
+
+export default TextareaField

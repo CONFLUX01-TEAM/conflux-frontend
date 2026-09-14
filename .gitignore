@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.pnpm
 dist
 dist-ssr
 coverage
@@ -28,3 +29,7 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# pnpm
+.pnpm-store/
+.pnpm-home/

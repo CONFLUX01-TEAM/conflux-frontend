@@ -70,7 +70,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null)
       navigate('/signin', {
         replace: true,
-        state: { notice: 'Your session has expired. Please sign in again.' },
+        state: { notice: 'Your session has expired. Please Login again.' },
       })
     }
 

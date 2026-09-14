@@ -2,17 +2,33 @@ import { forwardRef } from 'react'
 import type { InputFieldProps } from '@/shared/types/ui'
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
-  ({ label, className = '', error, errorMessage, icon, onIconClick, id, ...props }, ref) => {
+  (
+    {
+      label,
+      className = '',
+      wrapperClassName = '',
+      error,
+      errorMessage,
+      icon,
+      onIconClick,
+      id,
+      ...props
+    },
+    ref,
+  ) => {
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined)
 
     return (
-      <div className="w-full mt-[1.25rem]">
+      <div className={`w-full ${label ? 'mt-2 sm:mt-3' : ''} ${wrapperClassName}`}>
         {label && (
-          <label htmlFor={inputId} className="text-sm sm:text-base text-black">
-            {label}
+          <label
+            htmlFor={inputId}
+            className="font-sans text-sm font-semibold text-black block mb-2 text-left"
+          >
+            {label} {props.required && <span className="text-[#EF4444]">*</span>}
           </label>
         )}
-        <div className="relative mt-[0.5rem]">
+        <div className="relative">
           <input
             id={inputId}
             ref={ref}

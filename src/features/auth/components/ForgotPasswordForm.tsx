@@ -28,7 +28,7 @@ const ForgotPasswordForm = () => {
     setSubmitting(true)
     try {
       const response = await requestPasswordReset(email)
-      navigate('/reset-password', {
+      navigate('/verify-reset-code', {
         state: {
           email,
           notice: response.message || 'If an account exists, a password reset code has been sent.',
@@ -54,7 +54,7 @@ const ForgotPasswordForm = () => {
           Enter your email and we&rsquo;ll send you a 6-digit code to reset it.
         </p>
 
-        <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col mt-4">
+        <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col mt-4 text-left">
           <InputField
             label="Email Address"
             type="email"
@@ -72,16 +72,19 @@ const ForgotPasswordForm = () => {
 
           <Button
             type="submit"
-            loading={submitting}
+            isLoading={submitting}
             label="Send Reset Code"
             className="mt-[1.5rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium"
           />
         </form>
 
         <p className="mt-[2rem] text-center font-inter text-sm sm:text-base text-[#9D9D9D]">
-          Remembered your password?{' '}
-          <Link to="/signin" className="font-medium text-[#0D2D54]">
-            Back to sign in
+          Remember your password?{' '}
+          <Link
+            to="/signin"
+            className="font-medium text-[#0D2D54] hover:opacity-80 hover:underline transition-opacity duration-200 cursor-pointer"
+          >
+            Login
           </Link>
         </p>
       </div>
