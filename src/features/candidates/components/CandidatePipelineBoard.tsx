@@ -2,10 +2,13 @@ import React, { useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Spinner from '@/shared/ui/Spinner'
 import { useCandidatePipeline } from '../hooks/useCandidatePipeline'
+import { useBulkStageAction } from '../hooks/useBulkStageAction'
 import PipelineHeader from './PipelineHeader'
 import PipelineToolbar from './PipelineToolbar'
 import PipelineStageColumn from './PipelineStageColumn'
 import CandidateDetailDrawer from './CandidateDetailDrawer'
+import BulkStageActionModal from './BulkStageActionModal'
+import PipelineActionToast from './PipelineActionToast'
 
 /**
  * CandidatePipelineBoard
@@ -32,6 +35,7 @@ export const CandidatePipelineBoard: React.FC = () => {
     clearSelection,
     advanceSelectedCandidates,
     rejectSelectedCandidates,
+    restorePipeline,
     displayStages,
     selectedCandidate,
     selectCandidate,
@@ -39,6 +43,14 @@ export const CandidatePipelineBoard: React.FC = () => {
     advanceCandidate,
     rejectCandidate,
   } = useCandidatePipeline(roleId)
+
+  const bulkAction = useBulkStageAction({
+    pipelineData,
+    selectedCandidateIds,
+    advanceSelectedCandidates,
+    rejectSelectedCandidates,
+    restorePipeline,
+  })
 
   if (isLoading) {
     return (
@@ -80,8 +92,8 @@ export const CandidatePipelineBoard: React.FC = () => {
         onToggleBulkMode={toggleBulkMode}
         selectedCandidateCount={selectedCandidateIds.length}
         onToggleSelectAll={toggleSelectAll}
-        onAdvanceStage={advanceSelectedCandidates}
-        onRejectCandidates={rejectSelectedCandidates}
+        onAdvanceStage={() => bulkAction.open('advance')}
+        onRejectCandidates={() => bulkAction.open('reject')}
         onClearSelection={clearSelection}
       />
 
@@ -113,6 +125,18 @@ export const CandidatePipelineBoard: React.FC = () => {
         candidate={selectedCandidate}
         onAdvance={advanceCandidate}
         onReject={rejectCandidate}
+      />
+
+      {/* 5. Bulk Advance / Reject confirmation → processing modal, then undoable toast */}
+      <BulkStageActionModal
+        request={bulkAction.request}
+        onCancel={bulkAction.cancel}
+        onConfirm={bulkAction.confirm}
+      />
+      <PipelineActionToast
+        toast={bulkAction.toast}
+        onUndo={bulkAction.undo}
+        onDismiss={bulkAction.dismissToast}
       />
     </div>
   )

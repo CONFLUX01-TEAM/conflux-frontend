@@ -120,11 +120,11 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
     setSelectedCandidateIds([])
   }
 
+  // Bulk moves stay silent — the bulk action flow owns their feedback (toast + undo).
   const advanceSelectedCandidates = () => {
     if (!pipelineData || selectedCandidateIds.length === 0) return
 
     const selectedSet = new Set(selectedCandidateIds)
-    let advancedCount = 0
     const candidatesToMove: Record<string, PipelineCandidate[]> = {}
 
     const updatedStages = pipelineData.stages.map((stage) => {
@@ -133,7 +133,6 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
 
       stage.candidates.forEach((cand) => {
         if (selectedSet.has(cand.id) && nextStageKey) {
-          advancedCount++
           if (!candidatesToMove[nextStageKey]) {
             candidatesToMove[nextStageKey] = []
           }
@@ -173,9 +172,6 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
       stages: finalStages,
     })
 
-    toast.success(
-      `Advanced ${advancedCount} candidate${advancedCount === 1 ? '' : 's'} to next stage`,
-    )
     setSelectedCandidateIds([])
   }
 
@@ -183,7 +179,6 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
     if (!pipelineData || selectedCandidateIds.length === 0) return
 
     const selectedSet = new Set(selectedCandidateIds)
-    let rejectedCount = 0
     const movedToRejected: PipelineCandidate[] = []
 
     const updatedStages = pipelineData.stages.map((stage) => {
@@ -192,7 +187,6 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
       const remaining: PipelineCandidate[] = []
       stage.candidates.forEach((cand) => {
         if (selectedSet.has(cand.id)) {
-          rejectedCount++
           movedToRejected.push({
             ...cand,
             timeInStage: 'Just now',
@@ -228,7 +222,6 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
       stages: finalStages,
     })
 
-    toast.success(`Moved ${rejectedCount} candidate${rejectedCount === 1 ? '' : 's'} to Rejected`)
     setSelectedCandidateIds([])
   }
 
