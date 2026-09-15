@@ -1,10 +1,21 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import GoogleCallbackPage from '@/pages/auth/GoogleCallbackPage'
+import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from '@/pages/auth/ResetPasswordPage'
 import SignInPage from '@/pages/auth/SignInPage'
 import SignUpPage from '@/pages/auth/SignUpPage'
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage'
+import VerifyResetCodePage from '@/pages/auth/VerifyResetCodePage'
+import AssessmentPage from '@/pages/assessment/AssessmentPage'
+import CandidatesPage from '@/pages/candidates/CandidatesPage'
+import CandidatePipelinePage from '@/pages/candidates/CandidatePipelinePage'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
+import InterviewsPage from '@/pages/interviews/InterviewsPage'
 import OnboardingPage from '@/pages/onboarding/OnboardingPage'
+import JobsPage from '@/pages/jobs/JobsPage'
+import CreateRolePage from '@/pages/jobs/CreateRolePage'
+import SettingsPage from '@/pages/settings/SettingsPage'
+import CandidateApplicationPage from '@/pages/candidate-application'
+import { GuestOnly, RequireAuth, RequireOnboarded, RequireOnboarding } from '@/router/guards'
 import AuthLayout from '@/shared/layout/AuthLayout'
 import MainLayout from '@/shared/layout/MainLayout'
 import OnboardingLayout from '@/shared/layout/OnboardingLayout'
@@ -12,25 +23,43 @@ import OnboardingLayout from '@/shared/layout/OnboardingLayout'
 export const AppRouter = () => {
   return (
     <Routes>
-      <Route path="/" element={<MainLayout />}>
-        <Route index element={<Navigate to="/signin" replace />} />
-      </Route>
+      <Route path="/" element={<Navigate to="/signin" replace />} />
+      <Route path="careers/apply/:jobId" element={<CandidateApplicationPage />} />
 
       <Route element={<AuthLayout />}>
-        <Route path="signin" element={<SignInPage />} />
-        <Route path="signup" element={<SignUpPage />} />
+        <Route element={<GuestOnly />}>
+          <Route path="signin" element={<SignInPage />} />
+          <Route path="signup" element={<SignUpPage />} />
+        </Route>
         <Route path="verify-email" element={<VerifyEmailPage />} />
-        <Route path="auth/callback" element={<GoogleCallbackPage />} />
-        <Route path="auth/google/callback" element={<GoogleCallbackPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="verify-reset-code" element={<VerifyResetCodePage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
       </Route>
 
-      <Route element={<OnboardingLayout />}>
-        <Route path="onboarding" element={<OnboardingPage />} />
+      <Route element={<RequireAuth />}>
+        <Route element={<RequireOnboarding />}>
+          <Route element={<OnboardingLayout />}>
+            <Route path="onboarding" element={<OnboardingPage />} />
+          </Route>
+        </Route>
+
+        <Route element={<RequireOnboarded />}>
+          <Route element={<MainLayout />}>
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="assessment" element={<AssessmentPage />} />
+            <Route path="interviews" element={<InterviewsPage />} />
+            <Route path="candidates" element={<CandidatesPage />} />
+            <Route path="candidates/:roleId" element={<CandidatePipelinePage />} />
+            <Route path="jobs" element={<JobsPage />} />
+            <Route path="jobs/create" element={<CreateRolePage />} />
+            <Route path="roles/create" element={<CreateRolePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+        </Route>
       </Route>
 
-      <Route path="dashboard" element={<MainLayout />}>
-        <Route index element={<DashboardPage />} />
-      </Route>
+      <Route path="*" element={<Navigate to="/signin" replace />} />
     </Routes>
   )
 }
