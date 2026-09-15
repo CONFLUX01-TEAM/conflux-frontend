@@ -215,16 +215,8 @@ const AuthForm = ({ authState }: AuthFormProps) => {
               type="submit"
               disabled={isBusy}
               isLoading={submitting}
-              label={
-                submitting
-                  ? isSignIn
-                    ? 'Logging you in…'
-                    : 'Creating your account…'
-                  : isSignIn
-                    ? 'Login'
-                    : 'Signup'
-              }
-              className={`mt-[1.25rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium shrink-0 ${isBusy ? 'opacity-80 cursor-wait' : ''}`}
+              label={isSignIn ? 'Login' : 'Signup'}
+              className="mt-[1.25rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium shrink-0"
             />
 
             <div className="flex items-center gap-4 my-[1.25rem]">
