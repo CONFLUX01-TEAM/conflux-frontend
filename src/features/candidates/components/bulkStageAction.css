@@ -1,0 +1,614 @@
+/*
+ * Motion for the bulk stage action surfaces (confirm/processing modal + toast).
+ *
+ * Every keyframe animates FROM a hidden/offset state, so each element's resting
+ * style is its final state. That lets the outgoing phase layer switch all its
+ * animations off (`.bsa-leaving *`) without anything snapping out of view.
+ */
+
+.bsa-motion {
+  --bsa-rise: 24px;
+  --bsa-scale-from: 0.94;
+  --bsa-blur: 8px;
+  --bsa-pop-from: 0.4;
+  --bsa-shake: 1deg;
+  --bsa-base-delay: 120ms;
+
+  --bsa-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --bsa-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --bsa-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  /* Fallback springs; replaced by sampled physical springs below. */
+  --bsa-spring-soft: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --bsa-spring-bouncy: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@supports (animation-timing-function: linear(0, 1)) {
+  .bsa-motion {
+    /* ζ 0.72 — settles with a ~4% overshoot. */
+    --bsa-spring-soft: linear(
+      0,
+      0.05,
+      0.1681,
+      0.3169,
+      0.4706,
+      0.6132,
+      0.7358,
+      0.8349,
+      0.9106,
+      0.9649,
+      1.0013,
+      1.0234,
+      1.0347,
+      1.0383,
+      1.037,
+      1.0328,
+      1.0272,
+      1.0213,
+      1.0157,
+      1.0109,
+      1.0069,
+      1.0039,
+      1.0016,
+      1.0001,
+      0.9992,
+      0.9987,
+      0.9985,
+      0.9986,
+      0.9987,
+      0.9989,
+      0.9991,
+      0.9994,
+      1
+    );
+    /* ζ 0.6 — a lively ~10% overshoot for small pops. */
+    --bsa-spring-bouncy: linear(
+      0,
+      0.0561,
+      0.1913,
+      0.3636,
+      0.542,
+      0.7055,
+      0.8424,
+      0.9476,
+      1.0213,
+      1.0669,
+      1.0894,
+      1.0947,
+      1.0882,
+      1.0747,
+      1.0582,
+      1.0414,
+      1.0261,
+      1.0135,
+      1.0039,
+      0.9973,
+      0.9933,
+      0.9914,
+      0.9911,
+      0.9918,
+      0.9931,
+      0.9947,
+      0.9963,
+      0.9977,
+      0.9988,
+      0.9997,
+      1.0003,
+      1.0007,
+      1.0008,
+      1.0008,
+      1.0008,
+      1.0006,
+      1
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bsa-motion {
+    --bsa-rise: 0px;
+    --bsa-scale-from: 1;
+    --bsa-blur: 0px;
+    --bsa-pop-from: 1;
+    --bsa-shake: 0deg;
+  }
+
+  .bsa-motion .bsa-track-glint,
+  .bsa-motion .bsa-toast::before {
+    display: none;
+  }
+
+  .bsa-motion .bsa-card {
+    transition-duration: 1ms;
+  }
+}
+
+/* ─── Shared keyframes ──────────────────────────────────────────────────── */
+
+@keyframes bsa-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes bsa-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes bsa-rise-in {
+  from {
+    transform: translate3d(0, var(--bsa-rise), 0) scale(var(--bsa-scale-from));
+  }
+}
+
+@keyframes bsa-reveal {
+  from {
+    opacity: 0;
+    filter: blur(var(--bsa-blur));
+  }
+}
+
+@keyframes bsa-sink-out {
+  to {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--bsa-rise) * 0.5), 0) scale(0.97);
+    filter: blur(calc(var(--bsa-blur) * 0.6));
+  }
+}
+
+@keyframes bsa-item-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--bsa-rise) * 0.45), 0);
+    filter: blur(calc(var(--bsa-blur) * 0.5));
+  }
+}
+
+@keyframes bsa-pop {
+  from {
+    opacity: 0;
+    transform: scale(var(--bsa-pop-from));
+  }
+}
+
+@keyframes bsa-ripple {
+  from {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes bsa-draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* ─── Modal shell ───────────────────────────────────────────────────────── */
+
+.bsa-backdrop {
+  background: rgb(33 37 42 / 0.3);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.bsa-card {
+  box-shadow:
+    0 32px 64px -20px rgb(13 45 84 / 0.28),
+    0 12px 24px -12px rgb(13 45 84 / 0.12),
+    0 0 0 1px rgb(13 45 84 / 0.04);
+  transition: height 560ms var(--bsa-spring-soft);
+}
+
+.bsa-modal[data-state='open'] .bsa-backdrop {
+  animation: bsa-fade-in 360ms var(--bsa-ease-out) both;
+}
+
+.bsa-modal[data-state='open'] .bsa-card {
+  animation:
+    bsa-rise-in 720ms var(--bsa-spring-soft) both,
+    bsa-reveal 380ms var(--bsa-ease-out) both;
+}
+
+.bsa-modal[data-state='closed'] {
+  pointer-events: none;
+}
+
+.bsa-modal[data-state='closed'] .bsa-backdrop {
+  animation: bsa-fade-out 280ms var(--bsa-ease-in) both;
+}
+
+.bsa-modal[data-state='closed'] .bsa-card {
+  animation: bsa-sink-out 240ms var(--bsa-ease-in) both;
+}
+
+/* Content staggers in after the card lands; `--i` is the item's order. */
+.bsa-item {
+  animation: bsa-item-in 600ms var(--bsa-ease-out) both;
+  animation-delay: calc(var(--bsa-base-delay) + var(--i, 0) * 60ms);
+}
+
+.bsa-phase[data-phase='processing'] {
+  --bsa-base-delay: 140ms;
+}
+
+/* The outgoing phase lifts away while the card morphs to the new height. */
+.bsa-leaving {
+  pointer-events: none;
+  animation: bsa-content-out 220ms var(--bsa-ease-in) both;
+}
+
+.bsa-leaving * {
+  animation: none !important;
+}
+
+@keyframes bsa-content-out {
+  to {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--bsa-rise) * -0.4), 0) scale(0.98);
+    filter: blur(calc(var(--bsa-blur) * 0.5));
+  }
+}
+
+/* ─── Icon badge ────────────────────────────────────────────────────────── */
+
+.bsa-badge {
+  animation: bsa-pop 760ms var(--bsa-spring-bouncy) 80ms both;
+}
+
+.bsa-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid currentColor;
+  opacity: 0;
+  animation: bsa-ripple 1100ms var(--bsa-ease-out) 300ms;
+}
+
+.bsa-badge[data-tone='advance'] .bsa-badge-glyph {
+  animation: bsa-launch 820ms var(--bsa-spring-bouncy) 220ms both;
+}
+
+.bsa-badge[data-tone='reject'] .bsa-badge-glyph {
+  animation:
+    bsa-fade-in 240ms var(--bsa-ease-out) 200ms both,
+    bsa-shake 640ms var(--bsa-ease-out) 420ms both;
+}
+
+@keyframes bsa-launch {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(var(--bsa-rise) * -0.45), calc(var(--bsa-rise) * 0.45), 0);
+  }
+}
+
+@keyframes bsa-shake {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  18% {
+    transform: rotate(calc(var(--bsa-shake) * -12));
+  }
+  38% {
+    transform: rotate(calc(var(--bsa-shake) * 10));
+  }
+  58% {
+    transform: rotate(calc(var(--bsa-shake) * -6));
+  }
+  78% {
+    transform: rotate(calc(var(--bsa-shake) * 3));
+  }
+}
+
+/* ─── Spinner ───────────────────────────────────────────────────────────── */
+
+.bsa-spinner {
+  animation:
+    bsa-pop 720ms var(--bsa-spring-bouncy) 60ms both,
+    bsa-fade-in 200ms var(--bsa-ease-out) 60ms both;
+}
+
+.bsa-spinner svg {
+  animation: bsa-spin 900ms linear infinite;
+}
+
+.bsa-spinner circle {
+  stroke-dasharray: 72 28;
+  animation: bsa-arc 1800ms var(--bsa-ease-in-out) infinite;
+}
+
+@keyframes bsa-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bsa-arc {
+  0%,
+  100% {
+    stroke-dasharray: 62 38;
+  }
+  50% {
+    stroke-dasharray: 80 20;
+  }
+}
+
+/* ─── Stage track ───────────────────────────────────────────────────────── */
+
+.bsa-track-dot {
+  position: relative;
+  background-color: var(--bsa-dot);
+}
+
+.bsa-track-lane {
+  container-type: inline-size;
+}
+
+.bsa-track-line {
+  transform-origin: left center;
+  background-color: #ced4da;
+}
+
+.bsa-track-fill {
+  transform-origin: left center;
+  background-color: #21252a;
+}
+
+.bsa-track-arrow {
+  translate: 0 -50%;
+  color: var(--bsa-arrow);
+}
+
+/* Confirm — the route draws itself from the current stage to the next. */
+.bsa-track[data-phase='confirm'] {
+  --bsa-arrow: #ced4da;
+}
+
+.bsa-track[data-phase='confirm'] .bsa-track-from {
+  --bsa-dot: #0d2d54;
+  animation: bsa-pop 640ms var(--bsa-spring-bouncy) calc(var(--bsa-base-delay) + 300ms) both;
+}
+
+.bsa-track[data-phase='confirm'] .bsa-track-line {
+  animation: bsa-draw 640ms var(--bsa-ease-out) calc(var(--bsa-base-delay) + 380ms) both;
+}
+
+.bsa-track[data-phase='confirm'] .bsa-track-fill,
+.bsa-track[data-phase='confirm'] .bsa-track-glint {
+  display: none;
+}
+
+.bsa-track[data-phase='confirm'] .bsa-track-arrow {
+  animation: bsa-arrow-in 380ms var(--bsa-ease-out) calc(var(--bsa-base-delay) + 820ms) both;
+}
+
+.bsa-track[data-phase='confirm'] .bsa-track-to {
+  --bsa-dot: #dee2e6;
+  animation: bsa-pop 640ms var(--bsa-spring-bouncy) calc(var(--bsa-base-delay) + 900ms) both;
+}
+
+.bsa-track[data-phase='confirm'] .bsa-track-label-from {
+  color: #21252a;
+}
+
+.bsa-track[data-phase='confirm'] .bsa-track-label-to {
+  color: #868e96;
+  animation: bsa-fade-in 400ms var(--bsa-ease-out) calc(var(--bsa-base-delay) + 940ms) both;
+}
+
+@keyframes bsa-arrow-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-6px, 0, 0);
+  }
+}
+
+/* Processing — candidates travel: the source dims, the route inks in, the
+   destination lights up in its stage colour and keeps pulsing until done. */
+.bsa-track[data-phase='processing'] {
+  --bsa-arrow: #21252a;
+}
+
+.bsa-track[data-phase='processing'] .bsa-track-from {
+  --bsa-dot: #dee2e6;
+  animation: bsa-dim 520ms var(--bsa-ease-out) calc(var(--bsa-base-delay) + 220ms) both;
+}
+
+.bsa-track[data-phase='processing'] .bsa-track-label-from {
+  color: #868e96;
+  animation: bsa-label-dim 520ms var(--bsa-ease-out) calc(var(--bsa-base-delay) + 220ms) both;
+}
+
+.bsa-track[data-phase='processing'] .bsa-track-fill {
+  animation: bsa-draw 980ms var(--bsa-ease-in-out) calc(var(--bsa-base-delay) + 340ms) both;
+}
+
+.bsa-track[data-phase='processing'] .bsa-track-arrow {
+  animation: bsa-ink 260ms var(--bsa-ease-out) calc(var(--bsa-base-delay) + 1220ms) both;
+}
+
+.bsa-track[data-phase='processing'] .bsa-track-to {
+  --bsa-dot: var(--bsa-accent);
+  animation: bsa-arrive 760ms var(--bsa-spring-bouncy) calc(var(--bsa-base-delay) + 1280ms) both;
+}
+
+.bsa-track[data-phase='processing'] .bsa-track-to::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: var(--bsa-accent);
+  opacity: 0;
+  animation:
+    bsa-ripple 900ms var(--bsa-ease-out) calc(var(--bsa-base-delay) + 1280ms),
+    bsa-halo 1800ms var(--bsa-ease-out) calc(var(--bsa-base-delay) + 2200ms) infinite;
+}
+
+.bsa-track[data-phase='processing'] .bsa-track-label-to {
+  color: #21252a;
+  animation: bsa-label-ink 420ms var(--bsa-ease-out) calc(var(--bsa-base-delay) + 1280ms) both;
+}
+
+.bsa-track[data-phase='processing'] .bsa-track-glint {
+  background: linear-gradient(90deg, transparent, var(--bsa-accent), transparent);
+  opacity: 0;
+  animation: bsa-glint 1600ms var(--bsa-ease-in-out) calc(var(--bsa-base-delay) + 1900ms) infinite;
+}
+
+@keyframes bsa-dim {
+  from {
+    background-color: #0d2d54;
+  }
+}
+
+@keyframes bsa-label-dim {
+  from {
+    color: #21252a;
+  }
+}
+
+@keyframes bsa-label-ink {
+  from {
+    color: #868e96;
+  }
+}
+
+@keyframes bsa-ink {
+  from {
+    color: #ced4da;
+  }
+}
+
+@keyframes bsa-arrive {
+  from {
+    background-color: #dee2e6;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes bsa-halo {
+  0% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+@keyframes bsa-glint {
+  0% {
+    opacity: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+  25%,
+  75% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(100cqw, 0, 0);
+  }
+}
+
+/* ─── Toast ─────────────────────────────────────────────────────────────── */
+
+.bsa-toast {
+  --bsa-base-delay: 160ms;
+  box-shadow:
+    0 12px 28px -12px rgb(13 45 84 / 0.16),
+    0 2px 6px -2px rgb(13 45 84 / 0.06);
+  transition: box-shadow 200ms var(--bsa-ease-out);
+}
+
+.bsa-toast:hover {
+  box-shadow:
+    0 18px 36px -14px rgb(13 45 84 / 0.22),
+    0 2px 6px -2px rgb(13 45 84 / 0.08);
+}
+
+/* A single soft sheen that sweeps across on arrival. */
+.bsa-toast::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.65) 50%,
+    transparent 70%
+  );
+  transform: translate3d(-110%, 0, 0);
+  animation: bsa-sheen 1100ms var(--bsa-ease-in-out) calc(var(--bsa-base-delay) + 380ms) both;
+}
+
+@keyframes bsa-sheen {
+  from {
+    transform: translate3d(-110%, 0, 0);
+  }
+  to {
+    transform: translate3d(110%, 0, 0);
+  }
+}
+
+.bsa-toast[data-state='open'] {
+  animation:
+    bsa-toast-drop 760ms var(--bsa-spring-soft) var(--bsa-base-delay) both,
+    bsa-reveal 320ms var(--bsa-ease-out) var(--bsa-base-delay) both;
+}
+
+.bsa-toast[data-state='closed'] {
+  pointer-events: none;
+  animation: bsa-toast-lift 240ms var(--bsa-ease-in) both;
+}
+
+@keyframes bsa-toast-drop {
+  from {
+    transform: translate3d(0, calc(var(--bsa-rise) * -0.7), 0) scale(var(--bsa-scale-from));
+  }
+}
+
+@keyframes bsa-toast-lift {
+  to {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--bsa-rise) * -0.4), 0) scale(0.96);
+    filter: blur(calc(var(--bsa-blur) * 0.5));
+  }
+}
+
+.bsa-toast-dot {
+  animation: bsa-pop 700ms var(--bsa-spring-bouncy) calc(var(--bsa-base-delay) + 120ms) both;
+}
+
+.bsa-toast-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: var(--bsa-accent);
+  opacity: 0;
+  animation: bsa-halo 1400ms var(--bsa-ease-out) calc(var(--bsa-base-delay) + 300ms) 2;
+}
+
+.bsa-toast-text {
+  animation: bsa-toast-text-in 520ms var(--bsa-ease-out) both;
+  animation-delay: calc(var(--bsa-base-delay) + 140ms + var(--i, 0) * 70ms);
+}
+
+@keyframes bsa-toast-text-in {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(var(--bsa-rise) * 0.3), 0, 0);
+    filter: blur(calc(var(--bsa-blur) * 0.4));
+  }
+}
