@@ -9,6 +9,7 @@ import type {
 } from '../types/candidates.types'
 import { getRolePipeline } from '../services/candidates.service'
 import { enrichCandidateDetails } from '../data/candidates.mock'
+import { STAGE_TRANSITIONS } from '../utils/bulkStageAction'
 
 export interface UseCandidatePipelineReturn {
   pipelineData: RolePipelineDetail | null
@@ -37,13 +38,6 @@ export interface UseCandidatePipelineReturn {
   closeCandidateDrawer: () => void
   advanceCandidate: (candidateId: string, targetStageKey?: string) => void
   rejectCandidate: (candidateId: string) => void
-}
-
-const STAGE_TRANSITIONS: Record<string, string> = {
-  applied: 'screening',
-  screening: 'assessment',
-  assessment: 'interview',
-  interview: 'shortlisted',
 }
 
 /**
@@ -306,7 +300,7 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
         movedCandidate = found
         fromStageKey = stage.key
         if (!toStageKey) {
-          toStageKey = STAGE_TRANSITIONS[fromStageKey] || 'screening'
+          toStageKey = STAGE_TRANSITIONS[stage.key] || 'screening'
         }
         break
       }

@@ -11,6 +11,7 @@ export { default as CandidateDetailDrawer } from './components/CandidateDetailDr
 export { default as NextStageModal } from './components/NextStageModal'
 export { default as EmailPreviewView } from './components/EmailPreviewView'
 export { default as useCandidatePipeline } from './hooks/useCandidatePipeline'
+export * from './utils/bulkStageAction'
 export * from './types/candidates.types'
 export * from './services/candidates.service'
 export * from './data/candidates.mock'
