@@ -30,6 +30,8 @@ export interface UseCandidatePipelineReturn {
   clearSelection: () => void
   advanceSelectedCandidates: () => void
   rejectSelectedCandidates: () => void
+  /** Puts back a previous board + selection, e.g. when a bulk action is undone. */
+  restorePipeline: (pipeline: RolePipelineDetail, selectedCandidateIds: string[]) => void
   displayStages: PipelineStageDetail[]
   // Single Candidate Details Drawer state & actions
   selectedCandidate: CandidateDetailData | null
@@ -228,6 +230,11 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
 
     toast.success(`Moved ${rejectedCount} candidate${rejectedCount === 1 ? '' : 's'} to Rejected`)
     setSelectedCandidateIds([])
+  }
+
+  const restorePipeline = (pipeline: RolePipelineDetail, selection: string[]) => {
+    setPipelineData(pipeline)
+    setSelectedCandidateIds(selection)
   }
 
   // Filter and Sort displayed stages in real-time
@@ -437,6 +444,7 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
     clearSelection,
     advanceSelectedCandidates,
     rejectSelectedCandidates,
+    restorePipeline,
     displayStages,
     selectedCandidate,
     setSelectedCandidate,
