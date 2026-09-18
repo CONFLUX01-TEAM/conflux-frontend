@@ -10,6 +10,8 @@ import type {
 } from '../types/candidates.types'
 import NextStageModal from './NextStageModal'
 import EmailPreviewView from './EmailPreviewView'
+import RejectCandidatesModal from './RejectCandidatesModal'
+import AdvanceCandidatesModal from './AdvanceCandidatesModal'
 
 interface CandidateDetailDrawerProps {
   isOpen: boolean
@@ -40,6 +42,8 @@ export const CandidateDetailDrawer: React.FC<CandidateDetailDrawerProps> = ({
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const [showNextStageModal, setShowNextStageModal] = useState(false)
   const [showEmailPreview, setShowEmailPreview] = useState(false)
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [showAdvanceModal, setShowAdvanceModal] = useState(false)
   const [isEditingNote, setIsEditingNote] = useState(false)
   const [noteText, setNoteText] = useState('')
   const [newNoteInput, setNewNoteInput] = useState('')
@@ -60,7 +64,13 @@ export const CandidateDetailDrawer: React.FC<CandidateDetailDrawerProps> = ({
   }
 
   const handleAdvanceClick = () => {
-    setShowNextStageModal(true)
+    setShowNextStageModal(false)
+    setShowAdvanceModal(true)
+  }
+
+  const handleConfirmAdvanceFromModal = () => {
+    onAdvance(candidate.id, nextStageInfo.nextKey)
+    onClose()
   }
 
   const handleConfirmDirectAdvance = () => {
@@ -84,6 +94,10 @@ export const CandidateDetailDrawer: React.FC<CandidateDetailDrawerProps> = ({
   const handleRejectClick = () => {
     setShowNextStageModal(false)
     setShowEmailPreview(false)
+    setShowRejectModal(true)
+  }
+
+  const handleConfirmReject = () => {
     onReject(candidate.id)
     onClose()
   }
@@ -807,41 +821,62 @@ export const CandidateDetailDrawer: React.FC<CandidateDetailDrawerProps> = ({
   )
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      position="custom"
-      showCloseButton={false}
-      className={`fixed inset-y-0 right-0 h-screen w-full bg-white z-[9999] shadow-2xl flex overflow-hidden animate-in slide-in-from-right duration-300 transition-all ${
-        showEmailPreview
-          ? 'max-w-[520px] md:max-w-[980px] lg:max-w-[1040px] flex-col md:flex-row'
-          : 'max-w-[520px] flex-col'
-      }`}
-    >
-      {showEmailPreview ? (
-        <>
-          {/* Left panel: Candidate Details (visible on desktop) */}
-          <div className="hidden md:flex flex-col h-full w-[480px] lg:w-[500px] shrink-0 border-r border-[#F1F3F5] relative bg-white overflow-hidden">
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        position="custom"
+        showCloseButton={false}
+        className={`fixed inset-y-0 right-0 h-screen w-full bg-white z-[9999] shadow-2xl flex overflow-hidden animate-in slide-in-from-right duration-300 transition-all ${
+          showEmailPreview
+            ? 'max-w-[520px] md:max-w-[980px] lg:max-w-[1040px] flex-col md:flex-row'
+            : 'max-w-[520px] flex-col'
+        }`}
+      >
+        {showEmailPreview ? (
+          <>
+            {/* Left panel: Candidate Details (visible on desktop) */}
+            <div className="hidden md:flex flex-col h-full w-[480px] lg:w-[500px] shrink-0 border-r border-[#F1F3F5] relative bg-white overflow-hidden">
+              {candidateDetailsContent}
+            </div>
+
+            {/* Right panel: Email Preview (full-width on small screens, side-by-side on desktop) */}
+            <div className="flex-1 flex flex-col h-full bg-white overflow-hidden">
+              <EmailPreviewView
+                candidate={candidate}
+                stageName={nextStageInfo.label}
+                onBack={() => setShowEmailPreview(false)}
+                onClose={onClose}
+                onSendAndAdvance={handleSendEmailAndAdvance}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col h-full w-full bg-white relative overflow-hidden">
             {candidateDetailsContent}
           </div>
+        )}
+      </Modal>
 
-          {/* Right panel: Email Preview (full-width on small screens, side-by-side on desktop) */}
-          <div className="flex-1 flex flex-col h-full bg-white overflow-hidden">
-            <EmailPreviewView
-              candidate={candidate}
-              stageName={nextStageInfo.label}
-              onBack={() => setShowEmailPreview(false)}
-              onClose={onClose}
-              onSendAndAdvance={handleSendEmailAndAdvance}
-            />
-          </div>
-        </>
-      ) : (
-        <div className="flex flex-col h-full w-full bg-white relative overflow-hidden">
-          {candidateDetailsContent}
-        </div>
-      )}
-    </Modal>
+      {/* Advance Candidate Confirmation & Processing Modal */}
+      <AdvanceCandidatesModal
+        isOpen={showAdvanceModal}
+        onClose={() => setShowAdvanceModal(false)}
+        candidateCount={1}
+        sourceStageName={currentStageKey}
+        targetStageName={nextStageInfo.label}
+        onConfirm={handleConfirmAdvanceFromModal}
+      />
+
+      {/* Reject Candidate Confirmation & Processing Modal */}
+      <RejectCandidatesModal
+        isOpen={showRejectModal}
+        onClose={() => setShowRejectModal(false)}
+        candidateCount={1}
+        sourceStageName={candidate.currentStageKey || 'Applied'}
+        onConfirm={handleConfirmReject}
+      />
+    </>
   )
 }
 

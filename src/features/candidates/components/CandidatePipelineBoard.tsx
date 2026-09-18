@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Spinner from '@/shared/ui/Spinner'
 import { useCandidatePipeline } from '../hooks/useCandidatePipeline'
@@ -6,6 +6,16 @@ import PipelineHeader from './PipelineHeader'
 import PipelineToolbar from './PipelineToolbar'
 import PipelineStageColumn from './PipelineStageColumn'
 import CandidateDetailDrawer from './CandidateDetailDrawer'
+import AdvanceCandidatesModal from './AdvanceCandidatesModal'
+import RejectCandidatesModal from './RejectCandidatesModal'
+
+const STAGE_NEXT_LABELS: Record<string, string> = {
+  applied: 'Screening',
+  screening: 'Assessment',
+  assessment: 'Interview',
+  interview: 'Shortlisted',
+  shortlisted: 'Offer',
+}
 
 /**
  * CandidatePipelineBoard
@@ -16,6 +26,9 @@ import CandidateDetailDrawer from './CandidateDetailDrawer'
 export const CandidatePipelineBoard: React.FC = () => {
   const { roleId = 'role-1' } = useParams<{ roleId: string }>()
   const sliderRef = useRef<HTMLDivElement>(null)
+
+  const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false)
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false)
 
   const {
     pipelineData,
@@ -39,6 +52,20 @@ export const CandidatePipelineBoard: React.FC = () => {
     advanceCandidate,
     rejectCandidate,
   } = useCandidatePipeline(roleId)
+
+  // Determine source stage and next stage based on selected candidates
+  let sourceStageName = 'Applied'
+  let targetStageName = 'Screening'
+  if (pipelineData && selectedCandidateIds.length > 0) {
+    const selectedSet = new Set(selectedCandidateIds)
+    const matchedStage = pipelineData.stages.find((stage) =>
+      stage.candidates.some((c) => selectedSet.has(c.id)),
+    )
+    if (matchedStage) {
+      sourceStageName = matchedStage.label
+      targetStageName = STAGE_NEXT_LABELS[matchedStage.key] || 'Screening'
+    }
+  }
 
   if (isLoading) {
     return (
@@ -80,8 +107,8 @@ export const CandidatePipelineBoard: React.FC = () => {
         onToggleBulkMode={toggleBulkMode}
         selectedCandidateCount={selectedCandidateIds.length}
         onToggleSelectAll={toggleSelectAll}
-        onAdvanceStage={advanceSelectedCandidates}
-        onRejectCandidates={rejectSelectedCandidates}
+        onAdvanceStage={() => setIsAdvanceModalOpen(true)}
+        onRejectCandidates={() => setIsRejectModalOpen(true)}
         onClearSelection={clearSelection}
       />
 
@@ -113,6 +140,25 @@ export const CandidatePipelineBoard: React.FC = () => {
         candidate={selectedCandidate}
         onAdvance={advanceCandidate}
         onReject={rejectCandidate}
+      />
+
+      {/* 5. Bulk Advance Candidates Modal (matching Figma) */}
+      <AdvanceCandidatesModal
+        isOpen={isAdvanceModalOpen}
+        onClose={() => setIsAdvanceModalOpen(false)}
+        candidateCount={selectedCandidateIds.length}
+        sourceStageName={sourceStageName}
+        targetStageName={targetStageName}
+        onConfirm={advanceSelectedCandidates}
+      />
+
+      {/* 6. Bulk Reject Candidates Modal (matching Figma) */}
+      <RejectCandidatesModal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        candidateCount={selectedCandidateIds.length}
+        sourceStageName={sourceStageName}
+        onConfirm={rejectSelectedCandidates}
       />
     </div>
   )

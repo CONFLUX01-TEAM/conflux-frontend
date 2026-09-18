@@ -10,6 +10,8 @@ export { default as PipelineCandidateCard } from './components/PipelineCandidate
 export { default as CandidateDetailDrawer } from './components/CandidateDetailDrawer'
 export { default as NextStageModal } from './components/NextStageModal'
 export { default as EmailPreviewView } from './components/EmailPreviewView'
+export { default as AdvanceCandidatesModal } from './components/AdvanceCandidatesModal'
+export { default as RejectCandidatesModal } from './components/RejectCandidatesModal'
 export { default as useCandidatePipeline } from './hooks/useCandidatePipeline'
 export * from './types/candidates.types'
 export * from './services/candidates.service'
