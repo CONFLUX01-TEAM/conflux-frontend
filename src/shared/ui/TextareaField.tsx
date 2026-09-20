@@ -34,17 +34,17 @@ const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>(
           ref={ref}
           value={value}
           maxLength={maxLength}
-          className={`w-full py-[1rem] px-[1.2rem] border rounded-[0.5rem] outline-none resize-none h-[9rem] font-sans text-[0.88rem] text-black placeholder:text-[#9D9D9D] transition-colors ${
+          className={`w-full py-[1rem] px-[1.2rem] border rounded-[0.5rem] resize-none h-[9rem] font-sans text-[0.88rem] text-black placeholder:text-[#9D9D9D] transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:border-transparent ${
             error || errorMessage
-              ? 'border-[#EF4444] focus:ring-2 focus:ring-[#EF4444]/20'
-              : 'border-[#E6E6E6] focus:border-[#0D2D54]'
+              ? 'border-notice-error focus:ring-notice-error/20'
+              : 'border-[#E6E6E6] focus:ring-[#0D2D54]/20 hover:border-[#CFCFCF]'
           } ${className}`}
           {...props}
         />
         {(errorMessage || (showCharCount && maxLength)) && (
           <div className="flex justify-between items-center mt-1 min-h-[1.25rem]">
             {errorMessage ? (
-              <span className="text-red-500 text-[0.8rem] font-medium font-inter" role="alert">
+              <span className="text-notice-error text-[0.75rem] font-inter" role="alert">
                 {errorMessage}
               </span>
             ) : (

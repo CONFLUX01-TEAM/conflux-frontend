@@ -56,7 +56,7 @@ export const CandidatesOverview: React.FC = () => {
       {/* Loading Spinner */}
       {isLoading && (
         <div className="flex items-center justify-center min-h-[360px]">
-          <Spinner className="h-8 w-8 text-[#0D2D54]" wrapperClassName="bg-transparent p-0" />
+          <Spinner size="lg" className="text-[#0D2D54]" />
         </div>
       )}
 
