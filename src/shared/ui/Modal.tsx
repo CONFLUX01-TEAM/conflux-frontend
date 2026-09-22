@@ -49,6 +49,10 @@ const Modal: React.FC<ModalProps> = ({
       if (triggerId && target.closest(`#${triggerId}`)) {
         return
       }
+      // Prevent closing this modal if the click occurred inside another modal/dialog container
+      if (target.closest('[data-modal-container]') && !modalRef.current?.contains(target)) {
+        return
+      }
       if (modalRef.current && !modalRef.current.contains(target)) {
         onClose()
       }
@@ -75,11 +79,12 @@ const Modal: React.FC<ModalProps> = ({
       <>
         {/* Backdrop overlay */}
         <div
+          onClick={onClose}
           className={`fixed inset-0 bg-black/40 z-[9998] backdrop-blur-[1px] animate-fade-in ${overlayClassName}`}
         />
 
         {/* Custom positioned container */}
-        <div ref={modalRef} className={`z-[9999] ${className}`}>
+        <div ref={modalRef} data-modal-container="true" className={`z-[9999] ${className}`}>
           {showCloseButton && closeButtonPosition === 'outside' && (
             <button
               type="button"
@@ -122,14 +127,20 @@ const Modal: React.FC<ModalProps> = ({
       : customContent
   }
 
-  // Centered Dialog Modal
+  // Centered Dialog Modal (higher z-index so it always layers cleanly on top of custom slideouts)
   const centeredContent = (
     <div
-      className={`fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 ${overlayClassName}`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
+      className={`fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 ${overlayClassName}`}
     >
       <div
         ref={modalRef}
-        className={`relative w-full max-w-[32rem] bg-white rounded-2xl p-6 sm:p-8 shadow-2xl z-[9999] animate-in zoom-in-95 duration-200 ${className}`}
+        data-modal-container="true"
+        className={`relative w-full max-w-[32rem] bg-white rounded-2xl p-6 sm:p-8 shadow-2xl z-[10001] animate-in zoom-in-95 duration-200 ${className}`}
       >
         {showCloseButton && closeButtonPosition === 'outside' && (
           <button
