@@ -9,6 +9,7 @@ import type {
 } from '../types/candidates.types'
 import { getRolePipeline } from '../services/candidates.service'
 import { enrichCandidateDetails } from '../data/candidates.mock'
+import { STAGE_TRANSITIONS } from '../utils/bulkStageAction'
 
 export interface UseCandidatePipelineReturn {
   pipelineData: RolePipelineDetail | null
@@ -29,6 +30,8 @@ export interface UseCandidatePipelineReturn {
   clearSelection: () => void
   advanceSelectedCandidates: () => void
   rejectSelectedCandidates: () => void
+  /** Puts back a previous board + selection, e.g. when a bulk action is undone. */
+  restorePipeline: (pipeline: RolePipelineDetail, selectedCandidateIds: string[]) => void
   displayStages: PipelineStageDetail[]
   // Single Candidate Details Drawer state & actions
   selectedCandidate: CandidateDetailData | null
@@ -37,13 +40,6 @@ export interface UseCandidatePipelineReturn {
   closeCandidateDrawer: () => void
   advanceCandidate: (candidateId: string, targetStageKey?: string) => void
   rejectCandidate: (candidateId: string) => void
-}
-
-const STAGE_TRANSITIONS: Record<string, string> = {
-  applied: 'screening',
-  screening: 'assessment',
-  assessment: 'interview',
-  interview: 'shortlisted',
 }
 
 /**
@@ -124,11 +120,11 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
     setSelectedCandidateIds([])
   }
 
+  // Bulk moves stay silent — the bulk action flow owns their feedback (toast + undo).
   const advanceSelectedCandidates = () => {
     if (!pipelineData || selectedCandidateIds.length === 0) return
 
     const selectedSet = new Set(selectedCandidateIds)
-    let advancedCount = 0
     const candidatesToMove: Record<string, PipelineCandidate[]> = {}
 
     const updatedStages = pipelineData.stages.map((stage) => {
@@ -137,7 +133,6 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
 
       stage.candidates.forEach((cand) => {
         if (selectedSet.has(cand.id) && nextStageKey) {
-          advancedCount++
           if (!candidatesToMove[nextStageKey]) {
             candidatesToMove[nextStageKey] = []
           }
@@ -177,9 +172,6 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
       stages: finalStages,
     })
 
-    toast.success(
-      `Advanced ${advancedCount} candidate${advancedCount === 1 ? '' : 's'} to next stage`,
-    )
     setSelectedCandidateIds([])
   }
 
@@ -187,7 +179,6 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
     if (!pipelineData || selectedCandidateIds.length === 0) return
 
     const selectedSet = new Set(selectedCandidateIds)
-    let rejectedCount = 0
     const movedToRejected: PipelineCandidate[] = []
 
     const updatedStages = pipelineData.stages.map((stage) => {
@@ -196,7 +187,6 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
       const remaining: PipelineCandidate[] = []
       stage.candidates.forEach((cand) => {
         if (selectedSet.has(cand.id)) {
-          rejectedCount++
           movedToRejected.push({
             ...cand,
             timeInStage: 'Just now',
@@ -232,8 +222,12 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
       stages: finalStages,
     })
 
-    toast.success(`Moved ${rejectedCount} candidate${rejectedCount === 1 ? '' : 's'} to Rejected`)
     setSelectedCandidateIds([])
+  }
+
+  const restorePipeline = (pipeline: RolePipelineDetail, selection: string[]) => {
+    setPipelineData(pipeline)
+    setSelectedCandidateIds(selection)
   }
 
   // Filter and Sort displayed stages in real-time
@@ -306,7 +300,7 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
         movedCandidate = found
         fromStageKey = stage.key
         if (!toStageKey) {
-          toStageKey = STAGE_TRANSITIONS[fromStageKey] || 'screening'
+          toStageKey = STAGE_TRANSITIONS[stage.key] || 'screening'
         }
         break
       }
@@ -443,6 +437,7 @@ export function useCandidatePipeline(roleId: string): UseCandidatePipelineReturn
     clearSelection,
     advanceSelectedCandidates,
     rejectSelectedCandidates,
+    restorePipeline,
     displayStages,
     selectedCandidate,
     setSelectedCandidate,
