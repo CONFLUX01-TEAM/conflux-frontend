@@ -70,7 +70,7 @@ export const CandidatePipelineBoard: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[450px]">
-        <Spinner className="h-8 w-8 text-[#0D2D54]" wrapperClassName="bg-transparent p-0" />
+        <Spinner size="lg" className="text-[#0D2D54]" />
       </div>
     )
   }
