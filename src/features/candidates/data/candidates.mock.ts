@@ -20,9 +20,9 @@ export const defaultRoleStages: StageMetric[] = [
 ]
 
 /**
- * Mock candidate role overview list matching the UI specification
+ * Sample candidate role overview list for development testing of grid & pipeline
  */
-export const mockRoleCandidates: RoleCandidateOverview[] = [
+export const sampleRoleCandidates: RoleCandidateOverview[] = [
   {
     id: 'role-1',
     title: 'Senior Product Designer',
@@ -96,6 +96,13 @@ export const mockRoleCandidates: RoleCandidateOverview[] = [
     pipelineUrl: '/candidates/role-6',
   },
 ]
+
+/**
+ * Mock candidate role overview list.
+ * Defaults to an empty list so the Candidates page renders the empty state
+ * matching the specification unless roles are retrieved or created.
+ */
+export const mockRoleCandidates: RoleCandidateOverview[] = []
 
 // ─── Mock Data for Candidate Role Pipeline Kanban Detail ─────────────────────
 

@@ -1,5 +1,8 @@
+import { JobsOverview } from '@/features/jobs'
+
 const JobsPage = () => {
-  return <h2>Jobs</h2>
+  return <JobsOverview />
 }
 
 export default JobsPage
+

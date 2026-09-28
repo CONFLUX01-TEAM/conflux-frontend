@@ -93,6 +93,23 @@ const Header = ({ isSidebarCollapsed, onToggleSidebar }: HeaderProps) => {
       </button>
 
       <div className="flex items-center gap-2 sm:gap-3 lg:gap-5">
+        {/* Search Bar matching Figma header */}
+        <div className="hidden sm:flex items-center">
+          <div className="relative flex items-center">
+            <img
+              src="/search-icon.svg"
+              alt=""
+              aria-hidden="true"
+              className="absolute left-3.5 size-4 text-[#868E96] pointer-events-none opacity-60"
+            />
+            <input
+              type="text"
+              placeholder="Search..."
+              className="w-44 md:w-56 lg:w-64 pl-10 pr-3 py-2 text-sm rounded-lg border border-[#E5E7EB] bg-white text-[#222222] placeholder:text-[#98A2B3] focus:outline-none focus:border-[#0D2D54] transition-colors"
+            />
+          </div>
+        </div>
+
         {/* Notifications Button */}
         <div className="relative">
           <button

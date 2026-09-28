@@ -56,6 +56,20 @@ export const updateJobDraft = (id: string, payload: Partial<CreateJobPayload>) =
 /** GET /dashboard/jobs/:id — retrieve full job data (used for wizard resume). */
 export const getJobById = (id: string) => request<ApiEnvelope<JobResponse>>(`/dashboard/jobs/${id}`)
 
+/** GET /dashboard/jobs — retrieve list of jobs. */
+export const getJobs = async (): Promise<JobResponse[]> => {
+  try {
+    const response = await request<ApiEnvelope<JobResponse[]>>('/dashboard/jobs')
+    if (response?.data && Array.isArray(response.data)) {
+      return response.data
+    }
+    return []
+  } catch (err) {
+    console.info('[JobsService] No backend jobs found or error fetching jobs:', err)
+    return []
+  }
+}
+
 // ─── Step 3: Pipeline ────────────────────────────────────────────────────────
 
 /** GET /dashboard/jobs/:id/pipeline — seeds template on first call. */

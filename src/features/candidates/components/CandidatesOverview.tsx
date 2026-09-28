@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { RoleCandidateOverview } from '../types/candidates.types'
 import { getCandidatesOverview } from '../services/candidates.service'
 import RoleCandidateCard from './RoleCandidateCard'
@@ -14,6 +14,8 @@ import Button from '@/shared/ui/Button'
  */
 export const CandidatesOverview: React.FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isForceEmpty = searchParams.get('empty') === 'true'
   const [roles, setRoles] = useState<RoleCandidateOverview[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -61,7 +63,7 @@ export const CandidatesOverview: React.FC = () => {
       )}
 
       {/* Grid of Role Candidate Cards */}
-      {!isLoading && roles.length > 0 && (
+      {!isLoading && !isForceEmpty && roles.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-y-12 gap-x-4">
           {roles.map((role) => (
             <RoleCandidateCard key={role.id} role={role} />
@@ -69,18 +71,18 @@ export const CandidatesOverview: React.FC = () => {
         </div>
       )}
 
-      {/* Empty State Fallback */}
-      {!isLoading && roles.length === 0 && (
+      {/* Empty State Fallback matching Figma design */}
+      {!isLoading && (roles.length === 0 || isForceEmpty) && (
         <EmptyState
-          imgIcon="/empty-state.svg"
-          title="No Roles created yet!"
-          content="Start by creating your first hiring workflow and structured job setup."
+          variant="card"
+          title="No candidates yet"
+          content="Post a job to start receiving applications from candidates."
           action={
             <Button
               onClick={() => navigate('/jobs/create')}
-              className="bg-[#0D2D54] text-white rounded-[0.5rem] py-3 px-6 font-inter text-sm font-medium hover:opacity-90 transition-opacity"
-              icon={<span className="text-lg leading-none">+</span>}
-              label="Create Role"
+              className="w-auto bg-[#0D2D54] hover:bg-[#0A2342] text-white rounded-lg py-2.5 px-5 font-inter text-sm font-medium transition-colors cursor-pointer inline-flex items-center gap-2"
+              icon={<span className="text-base font-semibold leading-none">+</span>}
+              label="Post a new job"
             />
           }
         />
