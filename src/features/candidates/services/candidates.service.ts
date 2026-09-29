@@ -1,6 +1,6 @@
 import { request, type ApiEnvelope } from '@/services/api-client'
 import type { RoleCandidateOverview, RolePipelineDetail } from '../types/candidates.types'
-import { mockRoleCandidates, createMockPipelineDetail } from '../data/candidates.mock'
+import { mockRoleCandidates, sampleRoleCandidates, createMockPipelineDetail } from '../data/candidates.mock'
 
 /**
  * Service to manage candidate roles and pipeline metrics.
@@ -40,9 +40,15 @@ export const getRoleCandidatesById = async (
     if (response?.data) {
       return response.data
     }
-    return mockRoleCandidates.find((r) => r.id === roleId)
+    return (
+      mockRoleCandidates.find((r) => r.id === roleId) ||
+      sampleRoleCandidates.find((r) => r.id === roleId)
+    )
   } catch {
-    return mockRoleCandidates.find((r) => r.id === roleId)
+    return (
+      mockRoleCandidates.find((r) => r.id === roleId) ||
+      sampleRoleCandidates.find((r) => r.id === roleId)
+    )
   }
 }
 
@@ -57,11 +63,15 @@ export const getRolePipeline = async (roleId: string): Promise<RolePipelineDetai
     if (response?.data) {
       return response.data
     }
-    const matchedRole = mockRoleCandidates.find((r) => r.id === roleId)
+    const matchedRole =
+      mockRoleCandidates.find((r) => r.id === roleId) ||
+      sampleRoleCandidates.find((r) => r.id === roleId)
     return createMockPipelineDetail(roleId, matchedRole?.title || 'Senior Product Designer')
   } catch (err) {
     console.info(`[CandidatesService] Using mock pipeline data for ${roleId}:`, err)
-    const matchedRole = mockRoleCandidates.find((r) => r.id === roleId)
+    const matchedRole =
+      mockRoleCandidates.find((r) => r.id === roleId) ||
+      sampleRoleCandidates.find((r) => r.id === roleId)
     return createMockPipelineDetail(roleId, matchedRole?.title || 'Senior Product Designer')
   }
 }
