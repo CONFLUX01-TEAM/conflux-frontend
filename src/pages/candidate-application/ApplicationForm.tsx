@@ -642,11 +642,7 @@ const ApplicationForm = ({ isClosed, onSubmitSuccess }: ApplicationFormProps) =>
             <Button
               type="submit"
               disabled={isClosed || isSubmitting}
-              icon={
-                isSubmitting ? (
-                  <Spinner className="text-white h-4 w-4" wrapperClassName="bg-transparent p-0" />
-                ) : undefined
-              }
+              icon={isSubmitting ? <Spinner size="sm" className="text-white" /> : undefined}
               className={`w-full py-4 rounded-xl text-base font-semibold transition-all ${
                 isClosed
                   ? 'bg-[#5C7290] text-white cursor-not-allowed'

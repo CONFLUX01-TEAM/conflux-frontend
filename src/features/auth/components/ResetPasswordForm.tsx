@@ -99,10 +99,9 @@ const ResetPasswordForm = () => {
 
           <Button
             type="submit"
-            disabled={submitting}
             isLoading={submitting}
-            label={submitting ? 'Resetting password…' : 'Reset Password'}
-            className={`mt-[1.5rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium cursor-pointer ${submitting ? 'opacity-80 cursor-wait' : ''}`}
+            label="Reset Password"
+            className="mt-[1.5rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium"
           />
         </form>
 

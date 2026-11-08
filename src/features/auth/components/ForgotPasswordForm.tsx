@@ -72,10 +72,9 @@ const ForgotPasswordForm = () => {
 
           <Button
             type="submit"
-            disabled={submitting}
             isLoading={submitting}
-            label={submitting ? 'Sending reset code…' : 'Send Reset Code'}
-            className={`mt-[1.5rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium ${submitting ? 'opacity-80 cursor-wait' : ''}`}
+            label="Send Reset Code"
+            className="mt-[1.5rem] bg-[#0D2D54] text-white rounded-[0.5rem] py-[0.91em] font-inter text-base font-medium"
           />
         </form>
 

@@ -8,6 +8,7 @@ import type {
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label?: string
   icon?: ReactNode
+  /** Swaps the icon for a spinner and blocks input; the label stays put. */
   isLoading?: boolean
 }
 
@@ -30,6 +31,7 @@ export interface TextareaFieldProps extends TextareaHTMLAttributes<HTMLTextAreaE
 }
 
 export interface SpinnerProps {
+  size?: 'sm' | 'md' | 'lg'
   className?: string
   wrapperClassName?: string
 }

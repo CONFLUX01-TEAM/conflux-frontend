@@ -289,11 +289,11 @@ const OnboardingSteps = () => {
               <div
                 className={`w-full border-2 border-dashed ${
                   stepError
-                    ? 'border-red-500 bg-red-50/50'
+                    ? 'border-notice-error bg-notice-error-surface'
                     : isDragging
-                      ? 'border-[#0D2D54] bg-blue-50/40'
+                      ? 'border-[#0D2D54] bg-notice-info-surface'
                       : 'border-[#E6E6E6]'
-                } rounded-[0.5rem] flex flex-col items-center justify-center py-[3.5rem] cursor-pointer hover:bg-gray-50 transition-colors`}
+                } rounded-[0.5rem] flex flex-col items-center justify-center py-[3.5rem] cursor-pointer hover:bg-surface-subtle transition-colors`}
                 onClick={() => fileInputRef.current?.click()}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -322,7 +322,7 @@ const OnboardingSteps = () => {
                     <img
                       src={logoPreview}
                       alt="Logo preview"
-                      className="w-16 h-16 object-contain mb-2 rounded-[0.25rem] border border-gray-200 bg-white"
+                      className="w-16 h-16 object-contain mb-2 rounded-[0.25rem] border border-[#E6E6E6] bg-white"
                     />
                     <p className="text-[0.88rem] text-[#0D2D54] font-medium text-center px-4 truncate max-w-xs">
                       {logo?.name}
@@ -338,10 +338,10 @@ const OnboardingSteps = () => {
                       >
                         Change
                       </button>
-                      <span className="text-gray-300">|</span>
+                      <span className="text-[#E6E6E6]">|</span>
                       <button
                         type="button"
-                        className="text-[0.75rem] text-red-600 hover:underline font-medium cursor-pointer"
+                        className="text-[0.75rem] text-notice-error hover:underline font-medium cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleRemoveLogo()
@@ -363,7 +363,7 @@ const OnboardingSteps = () => {
               </div>
 
               {stepError && (
-                <p className="text-red-500 text-[0.8rem] mt-2 font-medium font-inter" role="alert">
+                <p className="text-notice-error text-[0.75rem] mt-2 font-inter" role="alert">
                   {stepError}
                 </p>
               )}
@@ -402,18 +402,17 @@ const OnboardingSteps = () => {
                 label="Back"
                 onClick={handleBack}
                 disabled={isLoading}
-                className="px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] bg-white text-black border border-[#E6E6E6] hover:bg-gray-50 transition-all cursor-pointer"
+                className="px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] bg-white text-black border border-[#E6E6E6] hover:bg-surface-subtle transition-all"
               />
             )}
             <Button
               type="submit"
-              label={step === 5 ? (isLoading ? 'Processing…' : 'proceed') : 'Continue'}
-              disabled={isLoading}
+              label={step === 5 ? 'proceed' : 'Continue'}
               isLoading={isLoading}
-              className={`px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] transition-all cursor-pointer ${
+              className={`px-[2rem] py-[0.6rem] rounded-[0.38rem] font-medium text-[0.88rem] !w-auto min-w-[8rem] transition-all ${
                 isCurrentStepValid
                   ? 'bg-[#0D2D54] text-white hover:bg-[#0D2D54]/90 shadow-sm'
-                  : 'bg-[#93B2F0] text-white opacity-80'
+                  : 'bg-[#0D2D54]/40 text-white'
               }`}
             />
           </div>
