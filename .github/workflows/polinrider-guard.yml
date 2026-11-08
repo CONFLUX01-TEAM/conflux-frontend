@@ -1,0 +1,142 @@
+# PolinRider guard.
+#
+# On every push: scans every new commit in the push (not just the latest one).
+# If any of them carries the PolinRider payload, the branch is put back to how it was
+# before the push (a new infected branch is deleted) and an issue names who pushed.
+#
+# Every 3 hours (from the default branch): scans every branch and opens an issue if
+# anything infected slipped through, e.g. a push to a branch that has no copy of this file.
+#
+# The scanner and indicators live in .github/polinrider/ (vendored, nothing fetched at run time).
+
+name: PolinRider Guard
+
+on:
+  push:
+  schedule:
+    - cron: '23 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: polinrider-guard-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  guard-push:
+    if: github.event_name == 'push' && !github.event.deleted
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Scan every commit in this push
+        id: scan
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          set -uo pipefail
+          SCANNER=.github/polinrider/scan-workspace.sh
+          git fetch -q origin '+refs/heads/*:refs/remotes/origin/*'
+          if [[ "$BEFORE" =~ ^0+$ ]]; then
+            # New branch: commits not already on any other branch.
+            others=$(git for-each-ref --format='%(objectname)' refs/remotes/origin/ | grep -v "^$AFTER$" || true)
+            commits=$(git rev-list --max-count=500 "$AFTER" ${others:+--not $others})
+          else
+            commits=$(git rev-list --max-count=500 "$BEFORE..$AFTER" 2>/dev/null || git rev-list --max-count=50 "$AFTER")
+          fi
+          echo "Commits to scan: $(echo "$commits" | grep -c . || true)"
+          tmp=$(mktemp -d)
+          for c in $commits; do
+            git diff-tree --no-commit-id --name-only -r -m --root --diff-filter=AM "$c" | sort -u | while read -r f; do
+              mkdir -p "$tmp/$c/$(dirname "$f")"
+              git show "$c:$f" > "$tmp/$c/$f" 2>/dev/null || true
+            done
+          done
+          bash "$SCANNER" --path "$tmp" --fail-on infected > commits-report.txt 2>&1; c1=$?
+          bash "$SCANNER" --path . --fail-on infected > tip-report.txt 2>&1; c2=$?
+          cat commits-report.txt tip-report.txt
+          if [[ $c1 -eq 2 || $c2 -eq 2 ]]; then
+            { grep -h '^INFECTED' commits-report.txt | sed "s#$tmp/##"; grep -h '^INFECTED' tip-report.txt; } | cut -c1-200 | head -30 > findings.txt
+            echo "infected=true" >> "$GITHUB_OUTPUT"
+          elif [[ $c1 -ne 0 || $c2 -ne 0 ]]; then
+            echo "::warning::Scanner could not finish (codes $c1/$c2)."
+          fi
+
+      - name: Undo the infected push
+        if: steps.scan.outputs.infected == 'true'
+        env:
+          BEFORE: ${{ github.event.before }}
+          REF: ${{ github.ref_name }}
+        run: |
+          if [[ "$BEFORE" =~ ^0+$ ]]; then
+            git push origin --delete "$REF"
+            echo "action=deleted the new branch" >> "$GITHUB_ENV"
+          else
+            git push --force origin "$BEFORE:refs/heads/$REF"
+            echo "action=reset the branch to ${BEFORE:0:7} (its state before the push)" >> "$GITHUB_ENV"
+          fi
+
+      - name: Open an issue
+        if: steps.scan.outputs.infected == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+          AFTER: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo "**@$ACTOR pushed PolinRider malware to \`$REF\`.** The guard $action."
+            echo
+            echo "Blocked commit: \`$AFTER\`  ·  [guard run]($RUN_URL)"
+            echo
+            echo "**@$ACTOR: stop pushing.** Your computer or GitHub token is infected. Scan your machine, revoke your GitHub tokens, and delete your local copy of this repository before cloning it again."
+            echo
+            echo '```'
+            cat findings.txt
+            echo '```'
+          } > body.md
+          gh issue create --title "Blocked infected push to $REF by $ACTOR" --body-file body.md
+          exit 1
+
+  sweep:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan every branch
+        id: scan
+        run: |
+          git fetch -q origin '+refs/heads/*:refs/remotes/origin/*'
+          bash .github/polinrider/scan-workspace.sh --path . --all-refs --fail-on infected > report.txt 2>&1; code=$?
+          cat report.txt
+          if [[ $code -eq 2 ]]; then
+            grep '^INFECTED' report.txt | cut -c1-200 | head -40 > findings.txt
+            echo "infected=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update the alert issue
+        if: steps.scan.outputs.infected == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="PolinRider malware found on a branch"
+          { echo "The 3-hourly sweep found infected branches. [Sweep run]($RUN_URL)"; echo; echo '```'; cat findings.txt; echo '```'; } > body.md
+          n=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [[ -n "$n" ]]; then gh issue comment "$n" --body-file body.md; else gh issue create --title "$title" --body-file body.md; fi
+          exit 1
