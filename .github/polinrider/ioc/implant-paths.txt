@@ -1,0 +1,56 @@
+# Install locations of known implants: MicrosoftSystem64 (related DPRK malware,
+# Contagious Interview) and, below, files of PolinRider's own later stages.
+# Existence of any of these is a confirmed compromise, not a signal to weigh.
+#
+# The implant is a Node.js Single Executable Application: a native binary with
+# the V8 engine and the JavaScript payload statically linked in. It does not
+# need Node installed, and it sets its own process title to look like a system
+# service. Endpoint tooling that expects either a native executable or an
+# interpreted script tends to miss it.
+#
+# Sources: safedep.io MicrosoftSystem64 binary analysis; JFrog Security Research
+# "Hugging Face as a malware CDN" (js-logger-pack), both April-May 2026.
+#
+# "~" is expanded to the user's home directory. Windows paths are checked by
+# Windows only.
+
+# --- install locations
+~/.local/share/MicrosoftSystem64
+~/Library/Application Support/MicrosoftSystem64
+%LOCALAPPDATA%\MicrosoftSystem64
+%LOCALAPPDATA%\MicrosoftSystem64.exe
+
+# --- working directories written by the implant
+~/.pcl-data
+~/.pcl-state
+
+# --- persistence
+~/Library/LaunchAgents/com.launchkeeper.MicrosoftSystem64.plist
+~/.config/systemd/user/MicrosoftSystem64.service
+~/.config/autostart/MicrosoftSystem64.desktop
+~/Library/LaunchAgents/com.bablu.helper.plist
+
+# --- dropped payloads seen on Linux and macOS
+/tmp/0001.dat
+/tmp/tmp7A863DD1.tmp
+
+# --- the Python stealer's lock file on Windows, beside the Linux and macOS path
+# already listed above. ~/.node_modules (the private npm prefix the stage-4
+# script installs axios into) and /tmp/.pip (its fallback pip target) are
+# deliberately absent: both are paths a developer could plausibly create, and
+# this file is INFECTED tier with no weaker path tier to put them in.
+# Source: SafeDep, "PolinRider Switches to Ethereum C2 in 30+ Repositories",
+# September 2026.
+%LOCALAPPDATA%\Temp\tmp7A863DD1.tmp
+
+# --- the same agent under a new name. The pino-ulid dropper installs the
+# MicrosoftSystem64 agent's persistence as `pkg-agent`. Only the LaunchAgent is
+# carried: com.launchkeeper is the MicrosoftSystem64 family's own reverse-DNS
+# prefix, already in the MicrosoftSystem64 plist above.
+# ~/.config/systemd/user/pkg-agent.service and
+# ~/.config/autostart/pkg-agent.desktop are deliberately absent -- `pkg-agent`
+# is a name a legitimate tool could use, and this file is INFECTED tier.
+# Source: OpenSSF malicious-packages MAL-2026-16154 (`pino-ulid`; Amazon
+# Inspector, SafeDep), September 2026.
+# See docs-site/src/content/docs/indicator-reviews/2026-10-19.md.
+~/Library/LaunchAgents/com.launchkeeper.pkg-agent.plist
